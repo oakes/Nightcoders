@@ -1,0 +1,3 @@
+{:require  [nightcoders.core]
+ :init-fns []
+ :compiler-options {}}
