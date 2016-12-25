@@ -1,13 +1,21 @@
 (ns nightcoders.core
   (:require [reagent.core :as r]
             [cljs-react-material-ui.core :refer [get-mui-theme]]
-            [cljs-react-material-ui.reagent :as ui]))
+            [cljs-react-material-ui.reagent :as ui])
+  (:import goog.net.XhrIo))
 
 (defonce state (r/atom {}))
 
-(aset js/window "signIn"
-  (fn [user]
-    (swap! state assoc :user (.getBasicProfile user))))
+(defn auth-user [user]
+  (.send XhrIo
+    "/auth"
+    (fn [e]
+      (when (.isSuccess (.-target e))
+        (swap! state assoc :user (.getBasicProfile user))))
+    "POST"
+    (.-id_token (.getAuthResponse user))))
+
+(aset js/window "signIn" auth-user)
 
 (defn sign-out []
   (-> (js/gapi.auth2.getAuthInstance)

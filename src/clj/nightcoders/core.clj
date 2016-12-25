@@ -3,12 +3,21 @@
             [clojure.java.io :as io]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.file :refer [wrap-file]]
+            [ring.middleware.session :refer [wrap-session]]
             [ring.util.response :refer [redirect]]
             [ring.util.request :refer [body-string]]
             [org.httpkit.server :refer [run-server]])
-  (:import [java.io File FilenameFilter]))
+  (:import [java.io File FilenameFilter]
+           [com.google.api.client.googleapis.auth.oauth2 GoogleIdToken GoogleIdToken$Payload GoogleIdTokenVerifier$Builder]
+           [com.google.api.client.json.jackson2 JacksonFactory]
+           [com.google.api.client.http.javanet NetHttpTransport]
+           [java.util Collections]))
 
 (def ^:const max-file-size (* 1024 1024 2))
+(def ^:const client-id "304442508042-58fmu8pd2u2l5irdbajiucm427aof93r.apps.googleusercontent.com")
+(def verifier (-> (GoogleIdTokenVerifier$Builder. (NetHttpTransport.) (JacksonFactory.))
+                  (doto (.setAudience (Collections/singletonList client-id)))
+                  (.build)))
 
 (defonce web-server (atom nil))
 (defonce options (atom nil))
@@ -72,6 +81,11 @@
     "/write-state" {:status 200
                     :headers {"Content-Type" "text/plain"}
                     :body nil #_(spit pref-file (body-string request))}
+    "/auth" (let [token (body-string request)]
+              (if-let [payload (some-> verifier (.verify token) .getPayload)]
+                {:status 200
+                 :session {:email (.getEmail payload)}}
+                {:status 403}))
     nil))
 
 (defn print-server [server]
@@ -90,7 +104,7 @@
    (when-not @web-server
      (->> (merge {:port 0} opts)
           (reset! options)
-          (run-server app)
+          (run-server (wrap-session app))
           (reset! web-server)
           print-server))))
 
