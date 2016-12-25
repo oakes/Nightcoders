@@ -33,7 +33,7 @@
                           :style {:display (if (:user @state) "block" "none")}}
         "Sign Out"]]
       [:div {:style {:margin "10px"}}
-       "Build apps and games with ClojureScript, a simple and powerful programming language."]]]]])
+       "Build web apps and games with ClojureScript, a simple and powerful programming language."]]]]])
 
 (js/gapi.load "auth2"
   (fn []
