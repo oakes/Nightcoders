@@ -1,0 +1,11 @@
+html, body {
+    background-color: #272b30;
+}
+
+button {
+	color: white;
+}
+
+.g-signin2 {
+    margin: 10px;
+}
