@@ -22,13 +22,34 @@
       (.signOut)
       (.then #(swap! state dissoc :user))))
 
-(defn new-project [template]
-  (.send XhrIo
-    "/new-project"
-    (fn [e]
-      (when (.isSuccess (.-target e))))
-    "POST"
-    (pr-str {:project-type template})))
+(defn new-project [project-name]
+  (let [template (:new-project-template @state)]
+    (swap! state dissoc :new-project-template)
+    (.send XhrIo
+      "/new-project"
+      (fn [e]
+        (when (.isSuccess (.-target e))))
+      "POST"
+      (pr-str {:project-type template
+               :project-name project-name}))))
+
+(defn new-project-dialog []
+  (let [project-name (atom "")]
+    [ui/dialog {:modal true
+                :open (some? (:new-project-template @state))
+                :actions
+                [(r/as-element
+                   [ui/flat-button {:on-click #(swap! state dissoc :new-project-template)
+                                    :style {:margin "10px"}}
+                    "Cancel"])
+                 (r/as-element
+                   [ui/flat-button {:on-click #(new-project @project-name)
+                                    :style {:margin "10px"}}
+                    "Create Project"])]}
+     [ui/text-field
+      {:hint-text "Choose a name for your project"
+       :full-width true
+       :on-change #(reset! project-name (.-value (.-target %)))}]]))
 
 (defn app []
   [ui/mui-theme-provider
@@ -46,13 +67,14 @@
      [ui/raised-button {:on-click sign-out
                         :style {:display (if (:user @state) "block" "none")}}
       "Sign Out"]]
+    [new-project-dialog]
     [ui/card
      [ui/card-text
       (if (:user @state)
         [:span
          [:p "Create a new project:"]
          [:a {:href "#"
-              :on-click #(new-project :web-app)}
+              :on-click #(swap! state assoc :new-project-template :basic-web)}
           "Basic Web App"]]
         [:span
          [:p "Build web apps and games with ClojureScript, a simple and powerful programming language."]
