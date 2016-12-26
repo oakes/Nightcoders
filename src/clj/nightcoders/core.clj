@@ -96,8 +96,9 @@
     "/new-project" (when-let [user-id (-> request :session :id)]
                      (let [project-id (db/insert-project! user-id)
                            {:keys [project-name project-type]} (edn/read-string (body-string request))]
-                       (fs/create-project! user-id project-id project-type project-name))
-                     {:status 200})
+                       (fs/create-project! user-id project-id project-type project-name)
+                       {:status 200
+                        :body (str "/" user-id "/" project-id)}))
     nil))
 
 (defn print-server [server]

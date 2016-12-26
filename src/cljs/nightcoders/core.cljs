@@ -28,7 +28,8 @@
     (.send XhrIo
       "/new-project"
       (fn [e]
-        (when (.isSuccess (.-target e))))
+        (when (.isSuccess (.-target e))
+          (set! (.-location js/window) (.. e -target getResponseText))))
       "POST"
       (pr-str {:project-type template
                :project-name project-name}))))
