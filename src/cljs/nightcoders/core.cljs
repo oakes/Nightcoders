@@ -20,8 +20,15 @@
 (defn sign-out []
   (-> (js/gapi.auth2.getAuthInstance)
       (.signOut)
-      (.then (fn []
-               (swap! state dissoc :user)))))
+      (.then #(swap! state dissoc :user))))
+
+(defn new-project [template]
+  (.send XhrIo
+    "/new-project"
+    (fn [e]
+      (when (.isSuccess (.-target e))))
+    "POST"
+    template))
 
 (defn app []
   [ui/mui-theme-provider
@@ -31,17 +38,25 @@
                    (aset "palette" "accent2Color" "darkgray")
                    (aset "palette" "accent3Color" "darkgray")))}
    [:span
+    [:div {:style {:margin "10px"
+                   :display "inline-block"}}
+     [:div {:class "g-signin2"
+            :data-onsuccess "signIn"
+            :style {:display (if (:user @state) "none" "block")}}]
+     [ui/raised-button {:on-click sign-out
+                        :style {:display (if (:user @state) "block" "none")}}
+      "Sign Out"]]
     [ui/card
      [ui/card-text
-      [:div {:style {:display "inline-block"}}
-       [:div {:class "g-signin2"
-              :data-onsuccess "signIn"
-              :style {:display (if (:user @state) "none" "block")}}]
-       [ui/raised-button {:on-click sign-out
-                          :style {:display (if (:user @state) "block" "none")}}
-        "Sign Out"]]
-      [:div {:style {:margin "10px"}}
-       "Build web apps and games with ClojureScript, a simple and powerful programming language."]]]]])
+      (if (:user @state)
+        [:span
+         [:p "Create a new project:"]
+         [:a {:href "#"
+              :on-click #(new-project "web-app")}
+          "Basic Web App"]]
+        [:span
+         [:p "Build web apps and games with ClojureScript, a simple and powerful programming language."]
+         [:p "Sign in with your Google account and start coding for free."]])]]]])
 
 (js/gapi.load "auth2"
   (fn []

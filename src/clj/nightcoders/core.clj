@@ -86,6 +86,7 @@
                 {:status 200
                  :session {:email (.getEmail payload)}}
                 {:status 403}))
+    "/new-project" (println (body-string request))
     nil))
 
 (defn print-server [server]
