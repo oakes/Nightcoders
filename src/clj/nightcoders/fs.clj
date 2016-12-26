@@ -5,6 +5,9 @@
 
 (def ^:const parent-dir "data")
 
+(defn project-exists? [user-id project-id]
+  (.exists (io/file parent-dir (str user-id) (str project-id))))
+
 (defn create-user! [id]
   (let [f (io/file parent-dir (str id))]
     (.mkdirs f)

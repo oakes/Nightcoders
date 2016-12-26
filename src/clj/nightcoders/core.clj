@@ -1,6 +1,7 @@
 (ns nightcoders.core
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
+            [clojure.string :as str]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.file :refer [wrap-file]]
             [ring.middleware.session :refer [wrap-session]]
@@ -98,8 +99,16 @@
                            {:keys [project-name project-type]} (edn/read-string (body-string request))]
                        (fs/create-project! user-id project-id project-type project-name)
                        {:status 200
-                        :body (str "/" user-id "/" project-id)}))
-    nil))
+                        :body (str "/" user-id "." project-id)}))
+    (let [[ids leaf] (filter seq (str/split (:uri request) #"/"))
+          [user-id project-id] (str/split ids #"\.")]
+      (when (and (number? (edn/read-string user-id))
+                 (number? (edn/read-string project-id))
+                 (fs/project-exists? user-id project-id))
+        (case leaf
+          nil {:status 200
+               :headers {"Content-Type" "text/html"}
+               :body (-> "nightlight-public/index.html" io/resource slurp)})))))
 
 (defn print-server [server]
   (println
