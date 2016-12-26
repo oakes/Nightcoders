@@ -28,7 +28,7 @@
     (fn [e]
       (when (.isSuccess (.-target e))))
     "POST"
-    template))
+    (pr-str {:project-type template})))
 
 (defn app []
   [ui/mui-theme-provider
@@ -52,7 +52,7 @@
         [:span
          [:p "Create a new project:"]
          [:a {:href "#"
-              :on-click #(new-project "web-app")}
+              :on-click #(new-project :web-app)}
           "Basic Web App"]]
         [:span
          [:p "Build web apps and games with ClojureScript, a simple and powerful programming language."]

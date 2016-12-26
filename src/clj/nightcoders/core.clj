@@ -6,7 +6,9 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.util.response :refer [redirect]]
             [ring.util.request :refer [body-string]]
-            [org.httpkit.server :refer [run-server]])
+            [org.httpkit.server :refer [run-server]]
+            [nightcoders.db :as db]
+            [nightcoders.fs :as fs])
   (:import [java.io File FilenameFilter]
            [com.google.api.client.googleapis.auth.oauth2 GoogleIdToken GoogleIdToken$Payload GoogleIdTokenVerifier$Builder]
            [com.google.api.client.json.jackson2 JacksonFactory]
@@ -15,6 +17,7 @@
 
 (def ^:const max-file-size (* 1024 1024 2))
 (def ^:const client-id "304442508042-58fmu8pd2u2l5irdbajiucm427aof93r.apps.googleusercontent.com")
+
 (def verifier (-> (GoogleIdTokenVerifier$Builder. (NetHttpTransport.) (JacksonFactory.))
                   (doto (.setAudience (Collections/singletonList client-id)))
                   (.build)))
@@ -83,10 +86,18 @@
                     :body nil #_(spit pref-file (body-string request))}
     "/auth" (let [token (body-string request)]
               (if-let [payload (some-> verifier (.verify token) .getPayload)]
-                {:status 200
-                 :session {:email (.getEmail payload)}}
+                (let [{:keys [new? id]} (db/insert-user! (.getEmail payload))]
+                  (when new?
+                    (fs/create-user! id))
+                  {:status 200
+                   :session {:email (.getEmail payload)
+                             :id id}})
                 {:status 403}))
-    "/new-project" (println (body-string request))
+    "/new-project" (when-let [user-id (-> request :session :id)]
+                     (let [project-id (db/insert-project! user-id)
+                           {:keys [project-name project-type]} (edn/read-string (body-string request))]
+                       (fs/create-project! user-id project-id project-type project-name))
+                     {:status 200})
     nil))
 
 (defn print-server [server]
@@ -102,6 +113,7 @@
        (wrap-resource "public")
        (start opts)))
   ([app opts]
+   (db/create-tables)
    (when-not @web-server
      (->> (merge {:port 0} opts)
           (reset! options)
@@ -111,6 +123,7 @@
 
 (defn dev-start [opts]
   (when-not @web-server
+    (db/start-ui)
     (.mkdirs (io/file "target" "public"))
     (-> handler
         (wrap-resource "nightlight-public")

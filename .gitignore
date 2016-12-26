@@ -6,4 +6,5 @@ pom.xml.asc
 **/target
 .*
 !.gitignore
-package/
+data/
+*.db
