@@ -8,6 +8,9 @@
 (defn project-exists? [user-id project-id]
   (.exists (io/file parent-dir (str user-id) (str project-id))))
 
+(defn get-public-file [user-id project-id leaves]
+  (slurp (apply io/file parent-dir (str user-id) (str project-id) "target" "nightcoders" leaves)))
+
 (defn create-user! [id]
   (let [f (io/file parent-dir (str id))]
     (.mkdirs f)

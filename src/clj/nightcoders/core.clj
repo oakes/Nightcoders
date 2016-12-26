@@ -99,16 +99,26 @@
                            {:keys [project-name project-type]} (edn/read-string (body-string request))]
                        (fs/create-project! user-id project-id project-type project-name)
                        {:status 200
-                        :body (str "/" user-id "." project-id)}))
-    (let [[ids leaf] (filter seq (str/split (:uri request) #"/"))
+                        :body (str "/" user-id "." project-id "/edit/")}))
+    (let [[ids mode & leaves] (filter seq (str/split (:uri request) #"/"))
           [user-id project-id] (str/split ids #"\.")]
       (when (and (number? (edn/read-string user-id))
                  (number? (edn/read-string project-id))
                  (fs/project-exists? user-id project-id))
-        (case leaf
-          nil {:status 200
-               :headers {"Content-Type" "text/html"}
-               :body (-> "nightlight-public/index.html" io/resource slurp)})))))
+        (case mode
+          nil (redirect (str "/" user-id "." project-id "/edit/"))
+          "edit" (if (seq leaves)
+                   {:status 200
+                    :body (-> (str "nightlight-public/" (str/join "/" leaves)) io/resource slurp)}
+                   {:status 200
+                    :headers {"Content-Type" "text/html"}
+                    :body (-> "nightlight-public/index.html" io/resource slurp)})
+          "public" (if (seq leaves)
+                     {:status 200
+                      :body (fs/get-public-file user-id project-id leaves)}
+                     {:status 200
+                      :headers {"Content-Type" "text/html"}
+                      :body (fs/get-public-file user-id project-id "index.html")}))))))
 
 (defn print-server [server]
   (println
@@ -119,7 +129,6 @@
 (defn start
   ([opts]
    (-> handler
-       (wrap-resource "nightlight-public")
        (wrap-resource "public")
        (start opts)))
   ([app opts]
@@ -127,7 +136,7 @@
    (when-not @web-server
      (->> (merge {:port 0} opts)
           (reset! options)
-          (run-server (wrap-session app))
+          (run-server (-> app wrap-session))
           (reset! web-server)
           print-server))))
 
@@ -136,7 +145,6 @@
     (db/start-ui)
     (.mkdirs (io/file "target" "public"))
     (-> handler
-        (wrap-resource "nightlight-public")
         (wrap-file "target/public")
         (start opts))))
 
