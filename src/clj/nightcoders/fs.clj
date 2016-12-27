@@ -15,8 +15,11 @@
   ([user-id project-id]
    (io/file parent-dir (str user-id) (str project-id) pref-file)))
 
+(defn get-source-dir [user-id project-id]
+  (io/file parent-dir (str user-id) (str project-id) "src" "nightcoders"))
+
 (defn get-public-file [user-id project-id leaves]
-  (slurp (apply io/file parent-dir (str user-id) (str project-id) "target" "nightcoders" leaves)))
+  (apply io/file parent-dir (str user-id) (str project-id) "target" "nightcoders" leaves))
 
 (defn create-user! [id]
   (let [f (io/file parent-dir (str id))]

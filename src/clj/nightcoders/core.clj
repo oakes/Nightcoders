@@ -38,31 +38,35 @@
       (.relativize (.toURI (io/file selected-path)))
       (.getPath)))
 
-(defn file-node
-  ([^File file user-id project-id]
-   (let [pref-state (edn/read-string (slurp (fs/get-pref-file user-id project-id)))]
-     (-> (file-node file pref-state)
-         (assoc :selection (:selection pref-state))
-         (assoc :options @options))))
-  ([^File file {:keys [expansions] :as pref-state}]
-   (let [path (.getCanonicalPath file)
-         children (->> (reify FilenameFilter
-                         (accept [this dir filename]
-                           (not (.startsWith filename "."))))
-                       (.listFiles file)
-                       (mapv #(file-node % pref-state)))
-         node {:primary-text (.getName file)
-               :value path
-               :initially-open (contains? expansions path)}]
-     (if (seq children)
-       (assoc node :nested-items children)
-       node))))
+(defn file-node [^File file {:keys [expansions] :as pref-state}]
+  (let [path (.getCanonicalPath file)
+        children (->> (reify FilenameFilter
+                        (accept [this dir filename]
+                          (not (.startsWith filename "."))))
+                      (.listFiles file)
+                      (mapv #(file-node % pref-state)))
+        node {:primary-text (.getName file)
+              :value path
+              :initially-open (contains? expansions path)}]
+    (if (seq children)
+      (assoc node :nested-items children)
+      node)))
+
+(defn update-prefs [file prefs]
+  (let [old-prefs (edn/read-string (slurp file))]
+    (spit file (pr-str (merge old-prefs prefs)))))
 
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
-            :body "[]"}
+            :body (let [prefs (when (= user-id (-> request :session :id str))
+                                (edn/read-string (slurp (fs/get-pref-file user-id project-id))))]
+                    (-> (fs/get-source-dir user-id project-id)
+                        (file-node prefs)
+                        (assoc :selection (:selection prefs))
+                        (assoc :options @options)
+                        pr-str))}
     "read-file" (when-let [f (some-> request body-string io/file)]
                   (cond
                     (not (.isFile f))
@@ -86,20 +90,16 @@
                               proj-prefs (when (= user-id (-> request :session :id str))
                                            (edn/read-string (slurp (fs/get-pref-file user-id project-id))))]
                           (pr-str (merge user-prefs proj-prefs)))}
-    "write-state" {:status 200
-                   :headers {"Content-Type" "text/plain"}
-                   :body (let [prefs (edn/read-string (body-string request))
-                               f (fs/get-pref-file user-id)
-                               user-prefs (select-keys prefs [:auto-save? :theme])
-                               old-user-prefs (edn/read-string (slurp f))]
-                           (spit f (pr-str (merge old-user-prefs user-prefs)))
-                           (when (= user-id (-> request :session :id str))
-                             (let [f (fs/get-pref-file user-id project-id)
-                                   proj-prefs (select-keys prefs [:selection :expansions])
-                                   old-proj-prefs (edn/read-string (slurp f))]
-                               (spit f (pr-str (merge old-proj-prefs proj-prefs))))))}
+    "write-state" (let [prefs (edn/read-string (body-string request))
+                        f (fs/get-pref-file user-id)]
+                    (update-prefs (fs/get-pref-file user-id)
+                      (select-keys prefs [:auto-save? :theme]))
+                    (when (= user-id (-> request :session :id str))
+                      (update-prefs (fs/get-pref-file user-id project-id)
+                        (select-keys prefs [:selection :expansions])))
+                    {:status 200})
     {:status 200
-     :body (-> (str "nightlight-public/" (str/join "/" leaves)) io/resource slurp)}))
+     :body (-> (str "nightlight-public/" (str/join "/" leaves)) io/resource io/input-stream)}))
 
 (defn project-routes [request]
   (let [[ids mode & leaves] (filter seq (str/split (:uri request) #"/"))
@@ -116,7 +116,7 @@
                   :body (-> "nightlight-public/index.html" io/resource slurp)})
         "public" (if (seq leaves)
                    {:status 200
-                    :body (fs/get-public-file user-id project-id leaves)}
+                    :body (slurp (fs/get-public-file user-id project-id leaves))}
                    {:status 200
                     :headers {"Content-Type" "text/html"}
                     :body (fs/get-public-file user-id project-id "index.html")})))))
