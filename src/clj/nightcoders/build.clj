@@ -49,6 +49,8 @@
   (with-channel request channel
     (on-close channel
       (fn [status]
+        (when-let [{:keys [in-pipe]} (get @state channel)]
+          (.close in-pipe))
         (swap! state update user-id dissoc project-id)))
     (on-receive channel
       (fn [text]
