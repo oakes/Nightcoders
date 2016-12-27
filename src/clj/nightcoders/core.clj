@@ -107,8 +107,11 @@
                       (update-prefs (fs/get-pref-file user-id project-id)
                         (select-keys prefs [:selection :expansions])))
                     {:status 200})
-    {:status 200
-     :body (-> (str "nightlight-public/" (str/join "/" leaves)) io/resource io/input-stream)}))
+    (if-let [res (io/resource (str "nightlight-public/" (str/join "/" leaves)))]
+      {:status 200
+       :body (io/input-stream res)}
+      {:status 200
+       :body (io/input-stream (io/resource (str "public/" (str/join "/" leaves))))})))
 
 (defn project-routes [request]
   (let [[ids mode & leaves] (filter seq (str/split (:uri request) #"/"))
@@ -122,7 +125,7 @@
                  (code-routes request user-id project-id leaves)
                  {:status 200
                   :headers {"Content-Type" "text/html"}
-                  :body (-> "nightlight-public/index.html" io/resource slurp)})
+                  :body (-> "public/loading.html" io/resource slurp)})
         "public" (if (seq leaves)
                    {:status 200
                     :body (slurp (fs/get-public-file user-id project-id leaves))}
