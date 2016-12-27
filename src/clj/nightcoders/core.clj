@@ -72,10 +72,7 @@
             :headers {"Content-Type" "text/plain"}
             :body (let [prefs (get-prefs request user-id project-id)
                         options (if (authorized? request user-id)
-                                  (assoc @options
-                                    :custom-nodes [{:primary-text "Status"
-                                                    :value "*STATUS*"
-                                                    :style {:font-weight "bold"}}])
+                                  @options
                                   (assoc @options :read-only? true :custom-nodes []))]
                     (-> (fs/get-source-dir user-id project-id)
                         (file-node (fs/get-source-dir user-id project-id) prefs)
