@@ -60,7 +60,8 @@
   (= user-id (-> request :session :id str)))
 
 (defn get-prefs [request user-id project-id]
-  (let [user-prefs (edn/read-string (slurp (fs/get-pref-file user-id)))
+  (let [user-prefs (when-let [user-id (-> request :session :id)]
+                     (edn/read-string (slurp (fs/get-pref-file user-id))))
         proj-prefs (when (authorized? request user-id)
                      (edn/read-string (slurp (fs/get-pref-file user-id project-id))))]
     (merge user-prefs proj-prefs)))
@@ -70,10 +71,15 @@
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
             :body (let [prefs (get-prefs request user-id project-id)
-                        options (assoc @options :read-only? (not (authorized? request user-id)))]
+                        options (if (authorized? request user-id)
+                                  (assoc @options
+                                    :custom-nodes [{:primary-text "Status"
+                                                    :value "*STATUS*"
+                                                    :style {:font-weight "bold"}}])
+                                  (assoc @options :read-only? true :custom-nodes []))]
                     (-> (fs/get-source-dir user-id project-id)
                         (file-node (fs/get-source-dir user-id project-id) prefs)
-                        (assoc :primary-text (:name prefs))
+                        (assoc :primary-text (or (:name prefs) "Nightcoders"))
                         (assoc :selection (:selection prefs))
                         (assoc :options options)
                         pr-str))}
@@ -170,12 +176,7 @@
   ([app opts]
    (db/create-tables)
    (when-not @web-server
-     (->> (merge {:port 0
-                  :hosted? true
-                  :custom-nodes [{:primary-text "Status"
-                                  :value "*STATUS*"
-                                  :style {:font-weight "bold"}}]}
-            opts)
+     (->> (merge {:port 0 :hosted? true} opts)
           (reset! options)
           (run-server (-> app wrap-session))
           (reset! web-server)
