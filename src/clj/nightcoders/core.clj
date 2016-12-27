@@ -31,12 +31,9 @@
     [(.getMessage form)]
     (pr-str form)))
 
-(defn read-state []
-  {:auto-save? true :theme :dark})
-
 (defn file-node
-  ([^File file]
-   (let [pref-state (read-state)]
+  ([^File file user-id project-id]
+   (let [pref-state (edn/read-string (slurp (fs/get-pref-file user-id project-id)))]
      (-> (file-node file pref-state)
          (assoc :selection (:selection pref-state))
          (assoc :options @options))))
@@ -61,7 +58,7 @@
          :body (-> "public/nightcoders.html" io/resource slurp)}
     "/tree" {:status 200
              :headers {"Content-Type" "text/plain"}
-             :body "[]" #_(-> "." io/file .getCanonicalFile file-node pr-str)}
+             :body "[]"}
     "/read-file" (when-let [f (some-> request body-string io/file)]
                    (cond
                      (not (.isFile f))
@@ -79,12 +76,18 @@
     "/write-file" (let [{:keys [path content]} (-> request body-string edn/read-string)]
                     #_(spit path content)
                     {:status 200})
-    "/read-state" {:status 200
-                   :headers {"Content-Type" "text/plain"}
-                   :body nil #_(pr-str (read-state))}
-    "/write-state" {:status 200
-                    :headers {"Content-Type" "text/plain"}
-                    :body nil #_(spit pref-file (body-string request))}
+    "/read-state" (when-let [user-id (-> request :session :id)]
+                    {:status 200
+                     :headers {"Content-Type" "text/plain"}
+                     :body (slurp (fs/get-pref-file user-id))})
+    "/write-state" (when-let [user-id (-> request :session :id)]
+                     {:status 200
+                      :headers {"Content-Type" "text/plain"}
+                      :body (let [f (fs/get-pref-file user-id)
+                                  m (edn/read-string (body-string request))
+                                  old-m (edn/read-string (slurp f))
+                                  new-m (merge old-m (select-keys m [:auto-save? :theme]))]
+                              (spit f (pr-str new-m)))})
     "/auth" (let [token (body-string request)]
               (if-let [payload (some-> verifier (.verify token) .getPayload)]
                 (let [{:keys [new? id]} (db/insert-user! (.getEmail payload))]

@@ -4,9 +4,16 @@
             [leiningen.new.templates :as t]))
 
 (def ^:const parent-dir "data")
+(def ^:const pref-file "prefs.edn")
 
 (defn project-exists? [user-id project-id]
   (.exists (io/file parent-dir (str user-id) (str project-id))))
+
+(defn get-pref-file
+  ([user-id]
+   (io/file parent-dir (str user-id) pref-file))
+  ([user-id project-id]
+   (io/file parent-dir (str user-id) (str project-id) pref-file)))
 
 (defn get-public-file [user-id project-id leaves]
   (slurp (apply io/file parent-dir (str user-id) (str project-id) "target" "nightcoders" leaves)))
@@ -14,8 +21,10 @@
 (defn create-user! [id]
   (let [f (io/file parent-dir (str id))]
     (.mkdirs f)
-    (spit (io/file f "prefs.edn")
-      (pr-str {:plan :free}))))
+    (spit (io/file f pref-file)
+      (pr-str {:plan :free
+               :auto-save? true
+               :theme :dark}))))
 
 (defn basic-web
   [project-name main-ns]
@@ -38,7 +47,7 @@
     (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
       (case project-type
         :basic-web (basic-web project-name main-ns)))
-    (spit (io/file f "prefs.edn")
+    (spit (io/file f pref-file)
       (pr-str {:name project-name
                :ns main-ns}))))
 
