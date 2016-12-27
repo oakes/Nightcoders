@@ -112,7 +112,7 @@
                         (select-keys prefs [:selection :expansions])))
                     {:status 200})
     "status" (when (authorized? request user-id)
-               (build/status-request request))
+               (build/status-request request user-id project-id))
     (if-let [res (io/resource (str "nightlight-public/" (str/join "/" leaves)))]
       {:status 200
        :body (io/input-stream res)}

@@ -45,15 +45,15 @@
               (finally (println "=== Finished ==="))))))))
   pipes)
 
-(defn status-request [request]
+(defn status-request [request user-id project-id]
   (with-channel request channel
     (on-close channel
       (fn [status]
-        (swap! state dissoc channel)))
+        (swap! state update user-id dissoc project-id)))
     (on-receive channel
       (fn [text]
         (when-not (get @state channel)
           (->> (create-pipes)
                (start-repl-thread! channel)
-               (swap! state assoc channel)))))))
+               (swap! state assoc-in [user-id project-id])))))))
 
