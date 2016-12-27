@@ -114,13 +114,12 @@
        :body (io/input-stream (io/resource (str "public/" (str/join "/" leaves))))})))
 
 (defn project-routes [request]
-  (let [[ids mode & leaves] (filter seq (str/split (:uri request) #"/"))
-        [user-id project-id] (str/split ids #"\.")]
+  (let [[user-id project-id mode & leaves] (filter seq (str/split (:uri request) #"/"))]
     (when (and (number? (edn/read-string user-id))
                (number? (edn/read-string project-id))
                (fs/project-exists? user-id project-id))
       (case mode
-        nil (redirect (str "/" user-id "." project-id "/code/"))
+        nil (redirect (str "/" user-id "/" project-id "/code/"))
         "code" (if (seq leaves)
                  (code-routes request user-id project-id leaves)
                  {:status 200
@@ -154,7 +153,7 @@
                            {:keys [project-name project-type]} (edn/read-string (body-string request))]
                        (fs/create-project! user-id project-id project-type project-name)
                        {:status 200
-                        :body (str "/" user-id "." project-id "/code/")}))
+                        :body (str "/" user-id "/" project-id "/code/")}))
     (project-routes request)))
 
 (defn print-server [server]
