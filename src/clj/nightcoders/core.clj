@@ -9,7 +9,8 @@
             [ring.util.request :refer [body-string]]
             [org.httpkit.server :refer [run-server]]
             [nightcoders.db :as db]
-            [nightcoders.fs :as fs])
+            [nightcoders.fs :as fs]
+            [nightcoders.build :as build])
   (:import [java.io File FilenameFilter]
            [com.google.api.client.googleapis.auth.oauth2 GoogleIdToken GoogleIdToken$Payload GoogleIdTokenVerifier$Builder]
            [com.google.api.client.json.jackson2 JacksonFactory]
@@ -110,6 +111,8 @@
                       (update-prefs (fs/get-pref-file user-id project-id)
                         (select-keys prefs [:selection :expansions])))
                     {:status 200})
+    "status" (when (authorized? request user-id)
+               (build/status-request request))
     (if-let [res (io/resource (str "nightlight-public/" (str/join "/" leaves)))]
       {:status 200
        :body (io/input-stream res)}
