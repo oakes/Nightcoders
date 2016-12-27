@@ -61,11 +61,12 @@
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
             :body (let [prefs (when (= user-id (-> request :session :id str))
-                                (edn/read-string (slurp (fs/get-pref-file user-id project-id))))]
+                                (edn/read-string (slurp (fs/get-pref-file user-id project-id))))
+                        options (assoc @options :read-only? (not= user-id (-> request :session :id str)))]
                     (-> (fs/get-source-dir user-id project-id)
                         (file-node prefs)
                         (assoc :selection (:selection prefs))
-                        (assoc :options @options)
+                        (assoc :options options)
                         pr-str))}
     "read-file" (when-let [f (some-> request body-string io/file)]
                   (cond
@@ -157,7 +158,12 @@
   ([app opts]
    (db/create-tables)
    (when-not @web-server
-     (->> (merge {:port 0} opts)
+     (->> (merge {:port 0
+                  :hosted? true
+                  :custom-nodes [{:primary-text "Status"
+                                  :value "*STATUS*"
+                                  :style {:font-weight "bold"}}]}
+            opts)
           (reset! options)
           (run-server (-> app wrap-session))
           (reset! web-server)
@@ -170,4 +176,7 @@
     (-> handler
         (wrap-file "target/public")
         (start opts))))
+
+(defn -main []
+  (start {:port 80}))
 
