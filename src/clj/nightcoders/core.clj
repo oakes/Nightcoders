@@ -136,7 +136,7 @@
                     :body (slurp (fs/get-public-file user-id project-id leaves))}
                    {:status 200
                     :headers {"Content-Type" "text/html"}
-                    :body (fs/get-public-file user-id project-id "index.html")})))))
+                    :body (fs/get-public-file user-id project-id ["index.html"])})))))
 
 (defn handler [request]
   (case (:uri request)
