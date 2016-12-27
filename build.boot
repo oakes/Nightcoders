@@ -1,5 +1,6 @@
 (set-env!
   :source-paths #{"src/clj" "src/cljs"}
+  :resource-paths #{"src/clj" "src/cljs" "resources"}
   :dependencies '[[adzerk/boot-cljs "1.7.228-1" :scope "test"]
                   [adzerk/boot-reload "0.4.12" :scope "test"]
                   [org.clojure/test.check "0.9.0" :scope "test"]
@@ -31,7 +32,6 @@
        :url "https://github.com/oakes/Nightcoders.net"})
 
 (deftask run []
-  (set-env! :resource-paths #{"src/clj" "src/cljs" "resources" "dev-resources"})
   (comp
     (watch)
     (reload :asset-path "public")

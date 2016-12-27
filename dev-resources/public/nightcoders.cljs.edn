@@ -1,3 +1,0 @@
-{:require  [paren-soup.core-spec nightcoders.core]
- :init-fns [cljs.spec.test/instrument]
- :compiler-options {}}
