@@ -31,6 +31,13 @@
     [(.getMessage form)]
     (pr-str form)))
 
+(defn get-relative-path
+  "Returns the selected path as a relative URI to the project path."
+  [project-path selected-path]
+  (-> (.toURI (io/file project-path))
+      (.relativize (.toURI (io/file selected-path)))
+      (.getPath)))
+
 (defn file-node
   ([^File file user-id project-id]
    (let [pref-state (edn/read-string (slurp (fs/get-pref-file user-id project-id)))]
@@ -51,43 +58,74 @@
        (assoc node :nested-items children)
        node))))
 
+(defn code-routes [request user-id project-id leaves]
+  (case (first leaves)
+    "tree" {:status 200
+            :headers {"Content-Type" "text/plain"}
+            :body "[]"}
+    "read-file" (when-let [f (some-> request body-string io/file)]
+                  (cond
+                    (not (.isFile f))
+                    {:status 400
+                     :headers {}
+                     :body "Not a file."}
+                    (> (.length f) max-file-size)
+                    {:status 400
+                     :headers {}
+                     :body "File too large."}
+                    :else
+                    {:status 200
+                     :headers {"Content-Type" "text/plain"}
+                     :body (slurp f)}))
+    "write-file" (let [{:keys [path content]} (-> request body-string edn/read-string)]
+                   #_(spit path content)
+                   {:status 200})
+    "read-state" {:status 200
+                  :headers {"Content-Type" "text/plain"}
+                  :body (let [user-prefs (edn/read-string (slurp (fs/get-pref-file user-id)))
+                              proj-prefs (when (= user-id (-> request :session :id str))
+                                           (edn/read-string (slurp (fs/get-pref-file user-id project-id))))]
+                          (pr-str (merge user-prefs proj-prefs)))}
+    "write-state" {:status 200
+                   :headers {"Content-Type" "text/plain"}
+                   :body (let [prefs (edn/read-string (body-string request))
+                               f (fs/get-pref-file user-id)
+                               user-prefs (select-keys prefs [:auto-save? :theme])
+                               old-user-prefs (edn/read-string (slurp f))]
+                           (spit f (pr-str (merge old-user-prefs user-prefs)))
+                           (when (= user-id (-> request :session :id str))
+                             (let [f (fs/get-pref-file user-id project-id)
+                                   proj-prefs (select-keys prefs [:selection :expansions])
+                                   old-proj-prefs (edn/read-string (slurp f))]
+                               (spit f (pr-str (merge old-proj-prefs proj-prefs))))))}
+    {:status 200
+     :body (-> (str "nightlight-public/" (str/join "/" leaves)) io/resource slurp)}))
+
+(defn project-routes [request]
+  (let [[ids mode & leaves] (filter seq (str/split (:uri request) #"/"))
+        [user-id project-id] (str/split ids #"\.")]
+    (when (and (number? (edn/read-string user-id))
+               (number? (edn/read-string project-id))
+               (fs/project-exists? user-id project-id))
+      (case mode
+        nil (redirect (str "/" user-id "." project-id "/code/"))
+        "code" (if (seq leaves)
+                 (code-routes request user-id project-id leaves)
+                 {:status 200
+                  :headers {"Content-Type" "text/html"}
+                  :body (-> "nightlight-public/index.html" io/resource slurp)})
+        "public" (if (seq leaves)
+                   {:status 200
+                    :body (fs/get-public-file user-id project-id leaves)}
+                   {:status 200
+                    :headers {"Content-Type" "text/html"}
+                    :body (fs/get-public-file user-id project-id "index.html")})))))
+
 (defn handler [request]
   (case (:uri request)
     "/" {:status 200
          :headers {"Content-Type" "text/html"}
          :body (-> "public/nightcoders.html" io/resource slurp)}
-    "/tree" {:status 200
-             :headers {"Content-Type" "text/plain"}
-             :body "[]"}
-    "/read-file" (when-let [f (some-> request body-string io/file)]
-                   (cond
-                     (not (.isFile f))
-                     {:status 400
-                      :headers {}
-                      :body "Not a file."}
-                     (> (.length f) max-file-size)
-                     {:status 400
-                      :headers {}
-                      :body "File too large."}
-                     :else
-                     {:status 200
-                      :headers {"Content-Type" "text/plain"}
-                      :body (slurp f)}))
-    "/write-file" (let [{:keys [path content]} (-> request body-string edn/read-string)]
-                    #_(spit path content)
-                    {:status 200})
-    "/read-state" (when-let [user-id (-> request :session :id)]
-                    {:status 200
-                     :headers {"Content-Type" "text/plain"}
-                     :body (slurp (fs/get-pref-file user-id))})
-    "/write-state" (when-let [user-id (-> request :session :id)]
-                     {:status 200
-                      :headers {"Content-Type" "text/plain"}
-                      :body (let [f (fs/get-pref-file user-id)
-                                  m (edn/read-string (body-string request))
-                                  old-m (edn/read-string (slurp f))
-                                  new-m (merge old-m (select-keys m [:auto-save? :theme]))]
-                              (spit f (pr-str new-m)))})
     "/auth" (let [token (body-string request)]
               (if-let [payload (some-> verifier (.verify token) .getPayload)]
                 (let [{:keys [new? id]} (db/insert-user! (.getEmail payload))]
@@ -102,26 +140,8 @@
                            {:keys [project-name project-type]} (edn/read-string (body-string request))]
                        (fs/create-project! user-id project-id project-type project-name)
                        {:status 200
-                        :body (str "/" user-id "." project-id "/edit/")}))
-    (let [[ids mode & leaves] (filter seq (str/split (:uri request) #"/"))
-          [user-id project-id] (str/split ids #"\.")]
-      (when (and (number? (edn/read-string user-id))
-                 (number? (edn/read-string project-id))
-                 (fs/project-exists? user-id project-id))
-        (case mode
-          nil (redirect (str "/" user-id "." project-id "/edit/"))
-          "edit" (if (seq leaves)
-                   {:status 200
-                    :body (-> (str "nightlight-public/" (str/join "/" leaves)) io/resource slurp)}
-                   {:status 200
-                    :headers {"Content-Type" "text/html"}
-                    :body (-> "nightlight-public/index.html" io/resource slurp)})
-          "public" (if (seq leaves)
-                     {:status 200
-                      :body (fs/get-public-file user-id project-id leaves)}
-                     {:status 200
-                      :headers {"Content-Type" "text/html"}
-                      :body (fs/get-public-file user-id project-id "index.html")}))))))
+                        :body (str "/" user-id "." project-id "/code/")}))
+    (project-routes request)))
 
 (defn print-server [server]
   (println
