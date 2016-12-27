@@ -33,18 +33,18 @@
 
 (defn get-relative-path
   "Returns the selected path as a relative URI to the project path."
-  [project-path selected-path]
-  (-> (.toURI (io/file project-path))
-      (.relativize (.toURI (io/file selected-path)))
+  [project-file selected-file]
+  (-> (.toURI project-file)
+      (.relativize (.toURI selected-file))
       (.getPath)))
 
-(defn file-node [^File file {:keys [expansions] :as pref-state}]
-  (let [path (.getCanonicalPath file)
+(defn file-node [^File file ^File source-dir {:keys [expansions] :as pref-state}]
+  (let [path (get-relative-path source-dir file)
         children (->> (reify FilenameFilter
                         (accept [this dir filename]
                           (not (.startsWith filename "."))))
                       (.listFiles file)
-                      (mapv #(file-node % pref-state)))
+                      (mapv #(file-node % source-dir pref-state)))
         node {:primary-text (.getName file)
               :value path
               :initially-open (contains? expansions path)}]
@@ -56,19 +56,28 @@
   (let [old-prefs (edn/read-string (slurp file))]
     (spit file (pr-str (merge old-prefs prefs)))))
 
+(defn authorized? [request user-id]
+  (= user-id (-> request :session :id str)))
+
+(defn get-prefs [request user-id project-id]
+  (let [user-prefs (edn/read-string (slurp (fs/get-pref-file user-id)))
+        proj-prefs (when (authorized? request user-id)
+                     (edn/read-string (slurp (fs/get-pref-file user-id project-id))))]
+    (merge user-prefs proj-prefs)))
+
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
-            :body (let [prefs (when (= user-id (-> request :session :id str))
-                                (edn/read-string (slurp (fs/get-pref-file user-id project-id))))
-                        options (assoc @options :read-only? (not= user-id (-> request :session :id str)))]
+            :body (let [prefs (get-prefs request user-id project-id)
+                        options (assoc @options :read-only? (not (authorized? request user-id)))]
                     (-> (fs/get-source-dir user-id project-id)
-                        (file-node prefs)
+                        (file-node (fs/get-source-dir user-id project-id) prefs)
+                        (assoc :primary-text (:name prefs))
                         (assoc :selection (:selection prefs))
                         (assoc :options options)
                         pr-str))}
-    "read-file" (when-let [f (some-> request body-string io/file)]
+    "read-file" (when-let [f (some->> request body-string (io/file (fs/get-source-dir user-id project-id)))]
                   (cond
                     (not (.isFile f))
                     {:status 400
@@ -81,21 +90,20 @@
                     :else
                     {:status 200
                      :headers {"Content-Type" "text/plain"}
-                     :body (slurp f)}))
-    "write-file" (let [{:keys [path content]} (-> request body-string edn/read-string)]
-                   #_(spit path content)
-                   {:status 200})
+                     :body f}))
+    "write-file" (when (authorized? request user-id)
+                   (let [{:keys [path content]} (-> request body-string edn/read-string)
+                         f (io/file (fs/get-source-dir user-id project-id) path)]
+                     (spit f content)
+                     {:status 200}))
     "read-state" {:status 200
                   :headers {"Content-Type" "text/plain"}
-                  :body (let [user-prefs (edn/read-string (slurp (fs/get-pref-file user-id)))
-                              proj-prefs (when (= user-id (-> request :session :id str))
-                                           (edn/read-string (slurp (fs/get-pref-file user-id project-id))))]
-                          (pr-str (merge user-prefs proj-prefs)))}
-    "write-state" (let [prefs (edn/read-string (body-string request))
-                        f (fs/get-pref-file user-id)]
-                    (update-prefs (fs/get-pref-file user-id)
-                      (select-keys prefs [:auto-save? :theme]))
-                    (when (= user-id (-> request :session :id str))
+                  :body (pr-str (get-prefs request user-id project-id))}
+    "write-state" (let [prefs (edn/read-string (body-string request))]
+                    (when-let [user-id (-> request :session :id)]
+                      (update-prefs (fs/get-pref-file user-id)
+                        (select-keys prefs [:auto-save? :theme])))
+                    (when (authorized? request user-id)
                       (update-prefs (fs/get-pref-file user-id project-id)
                         (select-keys prefs [:selection :expansions])))
                     {:status 200})
