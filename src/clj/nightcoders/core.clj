@@ -134,9 +134,14 @@
         "public" (if (seq leaves)
                    {:status 200
                     :body (slurp (fs/get-public-file user-id project-id leaves))}
-                   {:status 200
-                    :headers {"Content-Type" "text/html"}
-                    :body (fs/get-public-file user-id project-id ["index.html"])})))))
+                   (let [f (fs/get-public-file user-id project-id ["index.html"])]
+                     (if (.exists f)
+                       {:status 200
+                        :headers {"Content-Type" "text/html"}
+                        :body f}
+                       {:status 200
+                        :headers {"Content-Type" "text/html"}
+                        :body (io/input-stream (io/resource "public/refresh.html"))})))))))
 
 (defn handler [request]
   (case (:uri request)
