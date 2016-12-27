@@ -12,10 +12,13 @@
 (defn set-sign-in [cb]
   (aset js/window "signIn" #(auth-user % cb)))
 
+(defn unauth-user [cb]
+  (.send XhrIo "/unauth" cb "POST"))
+
 (defn sign-out [cb]
   (-> (js/gapi.auth2.getAuthInstance)
       (.signOut)
-      (.then cb)))
+      (.then #(unauth-user cb))))
 
 (defn load [cb]
   (js/gapi.load "auth2"

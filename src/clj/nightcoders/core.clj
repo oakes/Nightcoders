@@ -147,6 +147,8 @@
                    :session {:email (.getEmail payload)
                              :id id}})
                 {:status 403}))
+    "/unauth" {:status 200
+               :session {}}
     "/new-project" (when-let [user-id (-> request :session :id)]
                      (let [project-id (db/insert-project! user-id)
                            {:keys [project-name project-type]} (edn/read-string (body-string request))]
