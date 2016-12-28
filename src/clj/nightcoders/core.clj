@@ -64,10 +64,9 @@
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
             :body (let [prefs (get-prefs request user-id project-id)
-                        options (if (authorized? request user-id)
-                                  @options
-                                  (assoc @options :read-only? true))
-                        options (assoc options :url "../public/")]
+                        options (assoc @options
+                                  :read-only? (not (authorized? request user-id))
+                                  :url "../public/")]
                     (-> (fs/get-source-dir user-id project-id)
                         (file-node (fs/get-source-dir user-id project-id) prefs)
                         (assoc :primary-text (or (:name prefs) "Nightcoders"))
