@@ -34,6 +34,12 @@
         in-pipe (PipedReader. pout)]
     {:in in :out out :in-pipe in-pipe :out-pipe out-pipe}))
 
+(defn stop-process!
+  [process]
+  (when-let [p @process]
+    (.destroy p)
+    (reset! process nil)))
+
 (defn start-process!
   [process path args]
   (reset! process (.exec (Runtime/getRuntime)
@@ -87,11 +93,10 @@
               (finally (println "=== Finished ===")))))))
     process))
 
-(defn stop-process!
-  [process]
-  (when-let [p @process]
-    (.destroy p))
-  (reset! process nil))
+(defn start [user-id project-id channel]
+  (->> (create-pipes)
+       (start-boot-process! user-id project-id channel)
+       (swap! state assoc-in [user-id project-id])))
 
 (defn status-request [request user-id project-id]
   (with-channel request channel
@@ -102,8 +107,6 @@
         (swap! state update user-id dissoc project-id)))
     (on-receive channel
       (fn [text]
-        (when-not (get @state channel)
-          (->> (create-pipes)
-               (start-boot-process! user-id project-id channel)
-               (swap! state assoc-in [user-id project-id])))))))
+        (when-not (get-in @state [user-id project-id])
+          (start user-id project-id channel))))))
 
