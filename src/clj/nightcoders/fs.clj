@@ -1,6 +1,7 @@
 (ns nightcoders.fs
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
+            [clojure.edn :as edn]
             [leiningen.new.templates :as t]))
 
 (def ^:const parent-dir "data")
@@ -9,17 +10,31 @@
 (defn project-exists? [user-id project-id]
   (.exists (io/file parent-dir (str user-id) (str project-id))))
 
+(defn get-project-dir [user-id project-id]
+  (io/file parent-dir (str user-id) (str project-id)))
+
 (defn get-pref-file
   ([user-id]
    (io/file parent-dir (str user-id) pref-file))
   ([user-id project-id]
-   (io/file parent-dir (str user-id) (str project-id) pref-file)))
+   (io/file (get-project-dir user-id project-id) pref-file)))
 
 (defn get-source-dir [user-id project-id]
-  (io/file parent-dir (str user-id) (str project-id) "src" "nightcoders"))
+  (io/file (get-project-dir user-id project-id) "src" "nightcoders"))
 
 (defn get-public-file [user-id project-id leaves]
-  (apply io/file parent-dir (str user-id) (str project-id) "target" "nightcoders" leaves))
+  (apply io/file (get-project-dir user-id project-id) "target" "nightcoders" leaves))
+
+(defn update-prefs [file prefs]
+  (let [old-prefs (edn/read-string (slurp file))]
+    (spit file (pr-str (merge old-prefs prefs)))))
+
+(defn get-prefs [requester-id user-id project-id]
+  (let [user-prefs (when requester-id
+                     (edn/read-string (slurp (get-pref-file requester-id))))
+        proj-prefs (when (= requester-id user-id)
+                     (edn/read-string (slurp (get-pref-file user-id project-id))))]
+    (merge user-prefs proj-prefs)))
 
 (defn create-user! [id]
   (let [f (io/file parent-dir (str id))]

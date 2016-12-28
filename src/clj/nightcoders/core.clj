@@ -53,19 +53,11 @@
       (assoc node :nested-items children)
       node)))
 
-(defn update-prefs [file prefs]
-  (let [old-prefs (edn/read-string (slurp file))]
-    (spit file (pr-str (merge old-prefs prefs)))))
-
 (defn authorized? [request user-id]
   (= user-id (-> request :session :id str)))
 
 (defn get-prefs [request user-id project-id]
-  (let [user-prefs (when-let [user-id (-> request :session :id)]
-                     (edn/read-string (slurp (fs/get-pref-file user-id))))
-        proj-prefs (when (authorized? request user-id)
-                     (edn/read-string (slurp (fs/get-pref-file user-id project-id))))]
-    (merge user-prefs proj-prefs)))
+  (fs/get-prefs (-> request :session :id str) user-id project-id))
 
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
@@ -105,10 +97,10 @@
                   :body (pr-str (get-prefs request user-id project-id))}
     "write-state" (let [prefs (edn/read-string (body-string request))]
                     (when-let [user-id (-> request :session :id)]
-                      (update-prefs (fs/get-pref-file user-id)
+                      (fs/update-prefs (fs/get-pref-file user-id)
                         (select-keys prefs [:auto-save? :theme])))
                     (when (authorized? request user-id)
-                      (update-prefs (fs/get-pref-file user-id project-id)
+                      (fs/update-prefs (fs/get-pref-file user-id project-id)
                         (select-keys prefs [:selection :expansions])))
                     {:status 200})
     "status" (when (authorized? request user-id)
