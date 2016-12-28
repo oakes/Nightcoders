@@ -15,7 +15,8 @@
            [com.google.api.client.googleapis.auth.oauth2 GoogleIdToken GoogleIdToken$Payload GoogleIdTokenVerifier$Builder]
            [com.google.api.client.json.jackson2 JacksonFactory]
            [com.google.api.client.http.javanet NetHttpTransport]
-           [java.util Collections]))
+           [java.util Collections])
+  (:gen-class))
 
 (def ^:const max-file-size (* 1024 1024 2))
 (def ^:const client-id "304442508042-58fmu8pd2u2l5irdbajiucm427aof93r.apps.googleusercontent.com")
@@ -188,5 +189,5 @@
         (start opts))))
 
 (defn -main []
-  (start {:port 80}))
+  (start {:port 3000}))
 

@@ -29,7 +29,10 @@
   pom {:project 'nightcoders
        :version "1.0.0-SNAPSHOT"
        :description "A web-based ClojureScript IDE"
-       :url "https://github.com/oakes/Nightcoders.net"})
+       :url "https://github.com/oakes/Nightcoders.net"}
+  sift {:include #{#"\.jar$"}}
+  aot {:namespace '#{nightcoders.core}}
+  jar {:main 'nightcoders.core})
 
 (deftask run []
   (comp
@@ -40,4 +43,9 @@
       (instrument)
       (dev-start {:port 3000}))
     (target)))
+
+(deftask build []
+  (comp
+    (cljs :optimizations :simple)
+    (aot) (pom) (uber) (jar) (sift) (target)))
 
