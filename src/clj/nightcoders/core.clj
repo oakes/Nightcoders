@@ -66,7 +66,8 @@
             :body (let [prefs (get-prefs request user-id project-id)
                         options (if (authorized? request user-id)
                                   @options
-                                  (assoc @options :read-only? true :custom-nodes []))]
+                                  (assoc @options :read-only? true :custom-nodes []))
+                        options (assoc options :url "../public/")]
                     (-> (fs/get-source-dir user-id project-id)
                         (file-node (fs/get-source-dir user-id project-id) prefs)
                         (assoc :primary-text (or (:name prefs) "Nightcoders"))
