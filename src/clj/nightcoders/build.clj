@@ -84,9 +84,12 @@
                (:deps prefs)
                (conj (:deps prefs) cljs-dep))
         build-boot (create-build-boot deps)
-        main-cljs-edn (create-main-cljs-edn (-> prefs :main-ns symbol))]
+        main-cljs-edn (create-main-cljs-edn (-> prefs :main-ns symbol))
+        index-html (io/file f "target" "nightcoders" "index.html")]
     (spit (io/file f "build.boot") build-boot)
     (spit (io/file f "resources" "nightcoders" "main.cljs.edn") main-cljs-edn)
+    (when (.exists index-html)
+      (.delete index-html))
     (pipe-into-console! in-pipe channel)
     (.start
       (Thread.
