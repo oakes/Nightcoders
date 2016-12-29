@@ -102,13 +102,19 @@
 (defn start [user-id project-id channel]
   (->> (create-pipes)
        (start-boot-process! user-id project-id channel)
+       (hash-map :channel channel :process)
        (swap! state assoc-in [user-id project-id])))
+
+(defn restart [user-id project-id]
+  (when-let [{:keys [channel process]} (get-in @state [user-id project-id])]
+    (stop-process! process)
+    (start user-id project-id channel)))
 
 (defn status-request [request user-id project-id]
   (with-channel request channel
     (on-close channel
       (fn [status]
-        (when-let [process (get-in @state [user-id project-id])]
+        (when-let [process (get-in @state [user-id project-id :process])]
           (stop-process! process))
         (swap! state update user-id dissoc project-id)))
     (on-receive channel
