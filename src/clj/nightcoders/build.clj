@@ -94,7 +94,7 @@
                     *err* out]
             (try
               (println "Warming up...")
-              (start-process! process (.getCanonicalPath f) ["boot" "run"])
+              (start-process! process (.getCanonicalPath f) ["boot" "--no-colors" "run"])
               (catch Exception e (some-> (.getMessage e) println))
               (finally (println "=== Finished ===")))))))
     process))
