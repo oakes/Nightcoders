@@ -51,6 +51,7 @@
               :namespace main-ns
               :path (t/name-to-path main-ns)}]
     (t/->files data
+      ["README.md" (io/input-stream (io/resource "README.md"))]
       ["src/{{path}}.cljs" (render "core.cljs" data)]
       ["src/nightcoders/index.html" (render "index.html" data)]
       ["resources/nightcoders/main.cljs.edn" (render "main.cljs.edn.txt" data)]
