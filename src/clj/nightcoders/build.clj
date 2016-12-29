@@ -7,6 +7,8 @@
            [java.io PipedWriter PipedReader PrintWriter]
            [com.hypirion.io ClosingPipe Pipe]))
 
+(def ^:const cljs-dep '[org.clojure/clojurescript "1.9.229"])
+
 (defonce state (atom {}))
 
 (defn remove-returns [^String s]
@@ -75,9 +77,12 @@
         {:keys [in-pipe out]} pipes
         process (atom nil)
         prefs (fs/get-prefs user-id user-id project-id)
-        build-boot (create-build-boot
-                     '[[org.clojure/clojurescript "1.9.229"]
-                       [reagent "0.6.0"]])
+        deps (if (-> (map first (:deps prefs))
+                     set
+                     (contains? 'org.clojure/clojurescript))
+               (:deps prefs)
+               (conj (:deps prefs) cljs-dep))
+        build-boot (create-build-boot deps)
         main-cljs-edn (create-main-cljs-edn (-> prefs :ns symbol))]
     (spit (io/file f "build.boot") build-boot)
     (spit (io/file f "resources" "nightcoders" "main.cljs.edn") main-cljs-edn)
@@ -88,6 +93,7 @@
           (binding [*out* out
                     *err* out]
             (try
+              (println "Warming up...")
               (start-process! process (.getCanonicalPath f) ["boot" "run"])
               (catch Exception e (some-> (.getMessage e) println))
               (finally (println "=== Finished ===")))))))

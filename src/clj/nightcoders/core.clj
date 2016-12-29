@@ -155,9 +155,11 @@
     "/new-project" (when-let [user-id (-> request :session :id)]
                      (let [project-id (db/insert-project! user-id)
                            {:keys [project-name project-type]} (edn/read-string (body-string request))]
-                       (fs/create-project! user-id project-id project-type project-name)
-                       {:status 200
-                        :body (str "/" user-id "/" project-id "/code/")}))
+                       (if (fs/create-project! user-id project-id project-type project-name)
+                         {:status 200
+                          :body (str "/" user-id "/" project-id "/code/")}
+                         {:status 403
+                          :body "Invalid project name."})))
     (project-routes request)))
 
 (defn print-server [server]
