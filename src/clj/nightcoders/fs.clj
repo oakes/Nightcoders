@@ -5,7 +5,7 @@
             [leiningen.new.templates :as t]))
 
 (def ^:const parent-dir "data")
-(def ^:const pref-file "prefs.edn")
+(def ^:const pref-file-name ".nightlight.edn")
 
 (defn project-exists? [user-id project-id]
   (.exists (io/file parent-dir (str user-id) (str project-id))))
@@ -15,9 +15,9 @@
 
 (defn get-pref-file
   ([user-id]
-   (io/file parent-dir (str user-id) pref-file))
+   (io/file parent-dir (str user-id) pref-file-name))
   ([user-id project-id]
-   (io/file (get-project-dir user-id project-id) pref-file)))
+   (io/file (get-project-dir user-id project-id) pref-file-name)))
 
 (defn get-source-dir [user-id project-id]
   (io/file (get-project-dir user-id project-id) "src" "nightcoders"))
@@ -39,7 +39,7 @@
 (defn create-user! [id]
   (let [f (io/file parent-dir (str id))]
     (.mkdirs f)
-    (spit (io/file f pref-file)
+    (spit (io/file f pref-file-name)
       (pr-str {:plan :free
                :auto-save? true
                :theme :dark}))))
@@ -54,7 +54,7 @@
       ["src/{{path}}.cljs" (render "core.cljs" data)]
       ["src/nightcoders/index.html" (render "index.html" data)]
       ["resources/nightcoders/main.cljs.edn" (render "main.cljs.edn.txt" data)]
-      ["prefs.edn" (render "prefs.edn" data)])))
+      [pref-file-name (render "prefs.edn" data)])))
 
 (defn sanitize-name [s]
   (str/replace s #"\"" ""))
