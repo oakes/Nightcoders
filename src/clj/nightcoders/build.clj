@@ -62,7 +62,7 @@
       (reset! process nil))))
 
 (defn create-build-boot [deps]
-  (-> (io/resource "build.boot.clj")
+  (-> (io/resource "template.build.boot")
       slurp
       (format (str/join (map pr-str deps)))))
 
@@ -94,7 +94,7 @@
                     *err* out]
             (try
               (println "Warming up...")
-              (start-process! process (.getCanonicalPath f) ["boot" "--no-colors" "build"])
+              (start-process! process (.getCanonicalPath f) ["boot" "--no-colors" "dev"])
               (catch Exception e (some-> (.getMessage e) println))
               (finally (println "=== Finished ===")))))))
     process))

@@ -13,20 +13,19 @@
   '[pandeiro.boot-http :refer [serve]]
   '[nightlight.boot :refer [nightlight]])
 
-(deftask build []
+(deftask dev []
   (comp
     (watch)
-    (reload
-      :asset-path "nightcoders"
-      :cljs-asset-path ".")
-    (cljs
-      :source-map true
-      :optimizations :none)
+    (reload :asset-path "nightcoders" :cljs-asset-path ".")
+    (cljs :source-map true :optimizations :none)
     (target)))
 
 (deftask run []
   (comp
     (serve :dir "target/nightcoders" :port 3000)
-    (build)
+    (dev)
     (nightlight :port 4000 :url "http://localhost:3000")))
+
+(deftask build []
+  (comp (cljs :optimizations :advanced) (target)))
 
