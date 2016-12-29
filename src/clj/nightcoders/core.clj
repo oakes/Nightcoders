@@ -70,7 +70,7 @@
                                   :url "../public/")]
                     (-> (fs/get-source-dir user-id project-id)
                         (file-node (fs/get-source-dir user-id project-id) prefs)
-                        (assoc :primary-text (or (:name prefs) "Nightcoders"))
+                        (assoc :primary-text (or (:project-name prefs) "Nightcoders"))
                         (assoc :selection (:selection prefs))
                         (assoc :options options)
                         pr-str))}
@@ -102,7 +102,7 @@
                         (select-keys prefs [:auto-save? :theme])))
                     (when (authorized? request user-id)
                       (fs/update-prefs (fs/get-pref-file user-id project-id)
-                        (select-keys prefs [:selection :expansions])))
+                        (select-keys prefs [:selection :expansions :deps :project-name :main-ns])))
                     {:status 200})
     "status" (when (authorized? request user-id)
                (build/status-request request user-id project-id))

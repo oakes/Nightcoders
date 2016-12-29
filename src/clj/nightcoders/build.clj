@@ -83,7 +83,7 @@
                (:deps prefs)
                (conj (:deps prefs) cljs-dep))
         build-boot (create-build-boot deps)
-        main-cljs-edn (create-main-cljs-edn (-> prefs :ns symbol))]
+        main-cljs-edn (create-main-cljs-edn (-> prefs :main-ns symbol))]
     (spit (io/file f "build.boot") build-boot)
     (spit (io/file f "resources" "nightcoders" "main.cljs.edn") main-cljs-edn)
     (pipe-into-console! in-pipe channel)

@@ -36,7 +36,7 @@
                                     :style {:margin "10px"}}
                     "Create Project"])]}
      [ui/text-field
-      {:hint-text "Choose a name for your project"
+      {:floating-label-text "Choose a name for your project"
        :full-width true
        :on-change #(reset! project-name (.-value (.-target %)))}]]))
 

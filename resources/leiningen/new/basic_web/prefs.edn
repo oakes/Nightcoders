@@ -1,3 +1,3 @@
-{:name "{{app-name}}"
- :ns {{namespace}}
+{:project-name "{{app-name}}"
+ :main-ns "{{namespace}}"
  :deps [[reagent "0.6.0"]]}
