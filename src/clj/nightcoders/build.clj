@@ -8,6 +8,7 @@
            [com.hypirion.io ClosingPipe Pipe]))
 
 (def ^:const cljs-dep '[org.clojure/clojurescript "1.9.229"])
+(def ^:const max-open-projects 5)
 
 (defonce state (atom {}))
 
@@ -100,10 +101,12 @@
     process))
 
 (defn start [user-id project-id channel]
-  (->> (create-pipes)
-       (start-boot-process! user-id project-id channel)
-       (hash-map :channel channel :process)
-       (swap! state assoc-in [user-id project-id])))
+  (if (-> (get @state user-id) count (< max-open-projects))
+    (->> (create-pipes)
+         (start-boot-process! user-id project-id channel)
+         (hash-map :channel channel :process)
+         (swap! state assoc-in [user-id project-id]))
+    (send! channel "Error: You have too many open projects.")))
 
 (defn restart [user-id project-id]
   (when-let [{:keys [channel process]} (get-in @state [user-id project-id])]
