@@ -28,7 +28,7 @@
 (task-options!
   pom {:project 'nightcoders
        :version "1.0.0-SNAPSHOT"
-       :description "A web-based ClojureScript IDE"
+       :description "A cloud IDE for ClojureScript"
        :url "https://github.com/oakes/Nightcoders.net"}
   sift {:include #{#"\.jar$"}}
   aot {:namespace '#{nightcoders.core}}
