@@ -105,14 +105,14 @@
                      (spit f content)
                      {:status 200}))
     "new-file" (when (authorized? request user-id)
-                 (let [{:keys [path contents]} (fs/get-file-path-and-contents (body-string request))
-                       file (io/file (fs/get-source-dir user-id project-id) path)]
-                   (when-not (.exists file)
-                     (.mkdirs (.getParentFile file))
-                     (spit file contents))
-                   (-> (fs/get-pref-file user-id project-id)
-                       (fs/update-prefs {:selection path}))
-                   {:status 200}))
+                 (when-let [{:keys [path contents]} (fs/get-file-path-and-contents (body-string request))]
+                   (let [file (io/file (fs/get-source-dir user-id project-id) path)]
+                     (when-not (.exists file)
+                       (.mkdirs (.getParentFile file))
+                       (spit file contents))
+                     (-> (fs/get-pref-file user-id project-id)
+                         (fs/update-prefs {:selection path}))
+                     {:status 200})))
     "rename-file" (when (authorized? request user-id)
                     (let [{:keys [from to]} (-> request body-string edn/read-string)
                           src-dir (fs/get-source-dir user-id project-id)
@@ -139,7 +139,8 @@
                             old-prefs (edn/read-string (slurp pref-file))
                             new-prefs (select-keys prefs [:selection :expansions :deps :project-name :main-ns])]
                         (fs/update-prefs pref-file new-prefs)
-                        (when (not= (:deps old-prefs) (:deps new-prefs))
+                        (when (not= (select-keys old-prefs [:deps :main-ns])
+                                    (select-keys new-prefs [:deps :main-ns]))
                           (build/restart user-id project-id))))
                     {:status 200})
     "status" (when (authorized? request user-id)

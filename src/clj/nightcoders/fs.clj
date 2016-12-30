@@ -68,17 +68,16 @@
 (defn get-file-path-and-contents [s]
   (let [[path ext] (split-path-and-ext s)
         ext (str/lower-case ext)]
-    (if (#{"clj" "cljs" "cljc"} ext)
-      {:path (str (sanitize-path path) "." ext)
-       :contents (str "(ns " (sanitize-ns path) ")\n\n")}
-      {:path s :contents ""})))
+    (when (and (seq path)
+               (not (.startsWith path ".")))
+      (if (#{"clj" "cljs" "cljc"} ext)
+        {:path (str (sanitize-path path) "." ext)
+         :contents (str "(ns " (sanitize-ns path) ")\n\n")}
+        {:path s :contents ""}))))
 
 (defn basic-web
-  [project-name]
+  [project-name main-ns path]
   (let [render (t/renderer "basic-web")
-        sanitized-name (str/replace project-name #"[\./]" "")
-        main-ns (sanitize-ns sanitized-name)
-        path (sanitize-path sanitized-name)
         data {:app-name project-name
               :namespace main-ns
               :path path}
@@ -94,10 +93,13 @@
       [pref-file-name (pr-str prefs)])))
 
 (defn create-project! [user-id project-id project-type project-name]
-  (let [f (io/file parent-dir (str user-id) (str project-id))]
-    (when (seq project-name)
+  (let [f (io/file parent-dir (str user-id) (str project-id))
+        sanitized-name (str/replace project-name #"[\./]" "")
+        main-ns (sanitize-ns sanitized-name)
+        path (sanitize-path sanitized-name)]
+    (when (seq path)
       (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
         (case project-type
-          :basic-web (basic-web project-name)))
+          :basic-web (basic-web project-name main-ns path)))
       true)))
 
