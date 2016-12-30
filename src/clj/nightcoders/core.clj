@@ -60,6 +60,17 @@
 (defn get-prefs [request user-id project-id]
   (fs/get-prefs (-> request :session :id str) user-id project-id))
 
+(defn delete-parents-recursively!
+  "Deletes the given file along with all empty parents up to top-level-file."
+  [top-level-file file]
+  (when (and (zero? (count (.listFiles file)))
+             (not (.equals file top-level-file)))
+    (io/delete-file file true)
+    (->> file
+         .getParentFile
+         (delete-parents-recursively! top-level-file)))
+  nil)
+
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
     "tree" {:status 200
@@ -93,6 +104,28 @@
                          f (io/file (fs/get-source-dir user-id project-id) path)]
                      (spit f content)
                      {:status 200}))
+    "new-file" (when (authorized? request user-id)
+                 (let [file-path (body-string request)
+                       file (io/file (fs/get-source-dir user-id project-id) file-path)]
+                   (.mkdirs (.getParentFile file))
+                   (.createNewFile file)
+                   (-> (fs/get-pref-file user-id project-id)
+                       (fs/update-prefs {:selection file-path}))
+                   {:status 200}))
+    "rename-file" (when (authorized? request user-id)
+                    (let [{:keys [from to]} (-> request body-string edn/read-string)
+                          src-dir (fs/get-source-dir user-id project-id)
+                          from-file (io/file src-dir from)
+                          to-file (io/file src-dir to)]
+                      (.mkdirs (.getParentFile to-file))
+                      (.renameTo from-file to-file)
+                      (delete-parents-recursively! src-dir from-file)
+                      {:status 200}))
+    "delete-file" (when (authorized? request user-id)
+                    (let [src-dir (fs/get-source-dir user-id project-id)
+                          file (->> request body-string (io/file src-dir))]
+                      (delete-parents-recursively! src-dir file)
+                      {:status 200}))
     "read-state" {:status 200
                   :headers {"Content-Type" "text/plain"}
                   :body (pr-str (get-prefs request user-id project-id))}
