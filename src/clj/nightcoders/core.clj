@@ -105,12 +105,13 @@
                      (spit f content)
                      {:status 200}))
     "new-file" (when (authorized? request user-id)
-                 (let [file-path (body-string request)
-                       file (io/file (fs/get-source-dir user-id project-id) file-path)]
-                   (.mkdirs (.getParentFile file))
-                   (.createNewFile file)
+                 (let [{:keys [path contents]} (fs/get-file-path-and-contents (body-string request))
+                       file (io/file (fs/get-source-dir user-id project-id) path)]
+                   (when-not (.exists file)
+                     (.mkdirs (.getParentFile file))
+                     (spit file contents))
                    (-> (fs/get-pref-file user-id project-id)
-                       (fs/update-prefs {:selection file-path}))
+                       (fs/update-prefs {:selection path}))
                    {:status 200}))
     "rename-file" (when (authorized? request user-id)
                     (let [{:keys [from to]} (-> request body-string edn/read-string)

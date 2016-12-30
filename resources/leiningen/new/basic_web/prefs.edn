@@ -1,4 +1,0 @@
-{:project-name "{{app-name}}"
- :main-ns "{{namespace}}"
- :deps [[reagent "0.6.0"]]
- :selection "*CONTROL-PANEL*"}

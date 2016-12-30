@@ -44,36 +44,60 @@
                :auto-save? true
                :theme :dark}))))
 
-(defn basic-web
-  [project-name main-ns]
-  (let [render (t/renderer "basic-web")
-        data {:app-name project-name
-              :namespace main-ns
-              :path (t/name-to-path main-ns)}]
-    (t/->files data
-      ["README.md" (io/input-stream (io/resource "template.README.md"))]
-      ["src/{{path}}.cljs" (render "core.cljs" data)]
-      ["src/nightcoders/index.html" (render "index.html" data)]
-      ["resources/nightcoders/main.cljs.edn" (render "main.cljs.edn.txt" data)]
-      [pref-file-name (render "prefs.edn" data)])))
-
-(defn sanitize-name [s]
-  (str/replace s #"\"" ""))
-
-(defn name->ns [project-name]
+(defn sanitize-ns [s]
   (str "nightcoders."
-    (-> project-name
+    (-> s
         str/lower-case
         (str/replace #"[ _]" "-")
-        (str/replace #"[^a-z0-9\-]" ""))))
+        (str/replace #"/" ".")
+        (str/replace #"[^a-z0-9\-\.]" ""))))
+
+(defn sanitize-path [s]
+  (-> s
+      str/lower-case
+      (str/replace #"[ \-]" "_")
+      (str/replace #"\." "/")
+      (str/replace #"[^a-z0-9_/]" "")))
+
+(defn split-path-and-ext [s]
+  (let [last-dot (.lastIndexOf s ".")
+        path (subs s 0 last-dot)
+        ext (subs s (inc last-dot))]
+    [path ext]))
+
+(defn get-file-path-and-contents [s]
+  (let [[path ext] (split-path-and-ext s)
+        ext (str/lower-case ext)]
+    (if (#{"clj" "cljs" "cljc"} ext)
+      {:path (str (sanitize-path path) "." ext)
+       :contents (str "(ns " (sanitize-ns path) ")\n\n")}
+      {:path s :contents ""})))
+
+(defn basic-web
+  [project-name]
+  (let [render (t/renderer "basic-web")
+        sanitized-name (str/replace project-name #"[\./]" "")
+        main-ns (sanitize-ns sanitized-name)
+        path (sanitize-path sanitized-name)
+        data {:app-name project-name
+              :namespace main-ns
+              :path path}
+        prefs {:project-name project-name
+               :main-ns main-ns
+               :deps '[[reagent "0.6.0"]]
+               :selection "*CONTROL-PANEL*"}]
+    (t/->files data
+      ["README.md" (io/input-stream (io/resource "template.README.md"))]
+      ["src/nightcoders/{{path}}.cljs" (render "core.cljs" data)]
+      ["src/nightcoders/index.html" (render "index.html" data)]
+      ["resources/nightcoders/main.cljs.edn" (render "main.cljs.edn.txt" data)]
+      [pref-file-name (pr-str prefs)])))
 
 (defn create-project! [user-id project-id project-type project-name]
-  (let [f (io/file parent-dir (str user-id) (str project-id))
-        project-name (sanitize-name project-name)
-        main-ns (name->ns project-name)]
+  (let [f (io/file parent-dir (str user-id) (str project-id))]
     (when (seq project-name)
       (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
         (case project-type
-          :basic-web (basic-web project-name main-ns)))
+          :basic-web (basic-web project-name)))
       true)))
 
