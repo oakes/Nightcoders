@@ -73,6 +73,9 @@
 
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
+    "completions" {:status 200
+                   :headers {"Content-Type" "text/plain"}
+                   :body "[]"}
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
             :body (let [prefs (get-prefs request user-id project-id)
