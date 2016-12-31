@@ -63,20 +63,25 @@
       (.waitFor @process)
       (reset! process nil))))
 
-(defn create-build-boot [deps]
-  (-> (io/resource "template.build.boot")
-      slurp
-      (format (str/join "\n                  "
-                (map pr-str deps)))))
+(defn create-build-boot [{:keys [deps]}]
+  (let [deps (if (-> (map first deps)
+                     set
+                     (contains? 'org.clojure/clojurescript))
+               deps
+               (conj deps cljs-dep))]
+    (-> (io/resource "template.build.boot")
+        slurp
+        (format (str/join "\n                  "
+                  (map pr-str deps))))))
 
 (defn create-java-policy [m]
   (-> (io/resource "template.java.policy")
       slurp
       (stencil/render-string m)))
 
-(defn create-main-cljs-edn [main-ns]
+(defn create-main-cljs-edn [{:keys [main-ns]}]
   (pr-str
-    {:require  [main-ns 'nightlight.repl-server]
+    {:require  [(symbol main-ns) 'nightlight.repl-server]
      :init-fns []
      :compiler-options {:parallel-build true}}))
 
@@ -85,20 +90,17 @@
         {:keys [in-pipe out]} pipes
         process (atom nil)
         prefs (fs/get-prefs user-id user-id project-id)
-        deps (if (-> (map first (:deps prefs))
-                     set
-                     (contains? 'org.clojure/clojurescript))
-               (:deps prefs)
-               (conj (:deps prefs) cljs-dep))
-        build-boot (create-build-boot deps)
-        java-policy (create-java-policy {:home (System/getProperty "user.home")
-                                         :server (.getCanonicalPath (io/file "."))
-                                         :project (.getCanonicalPath f)})
-        main-cljs-edn (create-main-cljs-edn (-> prefs :main-ns symbol))
         index-html (io/file f "target" "nightcoders" "index.html")]
-    (spit (io/file f "build.boot") build-boot)
-    (spit (io/file f "java.policy") java-policy)
-    (spit (io/file f "resources" "nightcoders" "main.cljs.edn") main-cljs-edn)
+    (spit (io/file f "boot.properties")
+      (slurp (io/resource "template.boot.properties")))
+    (spit (io/file f "build.boot")
+      (create-build-boot prefs))
+    (spit (io/file f "java.policy")
+      (create-java-policy {:home (System/getProperty "user.home")
+                           :server (.getCanonicalPath (io/file "."))
+                           :project (.getCanonicalPath f)}))
+    (spit (io/file f "resources" "nightcoders" "main.cljs.edn")
+      (create-main-cljs-edn prefs))
     (when (.exists index-html)
       (.delete index-html))
     (pipe-into-console! in-pipe channel)

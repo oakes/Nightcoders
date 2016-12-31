@@ -17,7 +17,8 @@
                   [com.google.api-client/google-api-client "1.20.0"]
                   [org.clojure/java.jdbc "0.7.0-alpha1"]
                   [com.h2database/h2 "1.4.193"]
-                  [leiningen "2.7.0" :exclusions [leiningen.search]]])
+                  [leiningen "2.7.0" :exclusions [leiningen.search]]
+                  [clj-jgit "0.8.9"]])
 
 (require
   '[adzerk.boot-cljs :refer [cljs]]

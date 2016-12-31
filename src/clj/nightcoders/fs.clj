@@ -2,7 +2,8 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.edn :as edn]
-            [leiningen.new.templates :as t]))
+            [leiningen.new.templates :as t]
+            [clj-jgit.porcelain :as jgit]))
 
 (def ^:const parent-dir "data")
 (def ^:const pref-file-name ".nightlight.edn")
@@ -101,5 +102,6 @@
       (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
         (case project-type
           :basic-web (basic-web project-name main-ns path)))
+      (jgit/git-init f)
       true)))
 
