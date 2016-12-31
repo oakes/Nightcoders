@@ -52,19 +52,21 @@
        :on-change #(reset! project-name (.-value (.-target %)))}]]))
 
 (defn templates []
-  [ui/card {:class "card"}
-   [ui/card-text
-    [:span
-     [:p "Create a new project:"]
-     [:a {:href "#"
-          :on-click #(swap! state assoc :new-project-template :basic-web)}
-      "Basic Web App"]]]])
+  [:div {:class "card-group"}
+   [ui/card {:style {:margin "10px"}}
+    [ui/card-text
+     [:span
+      [:p "Create a new project:"]
+      [:a {:href "#"
+           :on-click #(swap! state assoc :new-project-template :basic-web)}
+       "Basic Web App"]]]]])
 
 (defn intro []
-  [ui/card {:class "card"}
-   [ui/card-text
-    [:p "Build web apps and games with ClojureScript, entirely in your browser."]
-    [:p "Sign in with your Google account and start coding for free."]]])
+  [:div {:class "card-group"}
+   [ui/card {:style {:margin "10px"}}
+    [ui/card-text
+     [:p "Build web apps and games with ClojureScript, entirely in your browser."]
+     [:p "Sign in with your Google account and start coding for free."]]]])
 
 (defn app []
   [ui/mui-theme-provider
