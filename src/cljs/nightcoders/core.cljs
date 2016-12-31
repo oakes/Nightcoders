@@ -67,8 +67,20 @@
               :on-click #(swap! state assoc :new-project-template :basic-web)}
           "Basic Web App"]]
         [:span
-         [:p "Build web apps and games with ClojureScript, a simple and powerful programming language."]
-         [:p "Sign in with your Google account and start coding for free."]])]]]])
+         [:h2 "Nightcoders"]
+         [:p "Build web apps and games with ClojureScript, entirely in your browser."]
+         [:p "Sign in with your Google account and start coding for free."]
+         [:h2 "Reload your code"]
+         [:p "Write your code in one tab, and see your app in another."]
+         [:p "Your changes will be pushed to the app instantly without refreshing it."]
+         [:h2 "Fire up a REPL"]
+         [:p "For even more interactivity, you can start the REPL."]
+         [:p "It’s like a little command prompt to poke and prod your app as you develop it."]
+         [:h2 "Bring in libraries"]
+         [:p "In the control panel, you can add any ClojureScript library you want."]
+         [:h2 "Take it offline"]
+         [:p "At any time, you can download your project and run it locally."]
+         [:p "It even comes configured with Nightlight, an offline version of the editor this website uses."]])]]]])
 
 (r/render-component [app] (.querySelector js/document "#app"))
 
