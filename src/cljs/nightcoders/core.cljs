@@ -102,7 +102,9 @@
       [ui/card-text
        [ui/card-title {:title "Take it offline"
                        :style {:text-align "center"}}]
-       "Download your project at any time. It'll come with Nightlight, an offline version of this website."]]]]])
+       "Download your project at any time. It'll come with "
+       [:a {:href "https://sekao.net/nightlight/"} "Nightlight"]
+       ", an offline version of this website."]]]]])
 
 (r/render-component [app] (.querySelector js/document "#app"))
 

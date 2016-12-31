@@ -2,6 +2,10 @@ html, body {
     background-color: #272b30;
 }
 
+a {
+    color: lightblue;
+}
+
 button {
 	color: white;
 }
