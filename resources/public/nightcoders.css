@@ -9,3 +9,19 @@ button {
 .g-signin2 {
     margin: 10px;
 }
+
+.card {
+    margin: 10px;
+}
+
+.small-card {
+    display: inline-block;
+    width: 300px;
+    height: 300px;
+    margin: 10px;
+}
+
+.card-group {
+    margin: auto;
+    width: 640px;
+}

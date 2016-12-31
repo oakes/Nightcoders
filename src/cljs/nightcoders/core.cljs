@@ -22,6 +22,17 @@
       (pr-str {:project-type template
                :project-name project-name}))))
 
+(defn signin-signout []
+  [:div {:style {:margin "10px"
+                 :display "inline-block"}}
+   [:div {:class "g-signin2"
+          :data-onsuccess "signIn"
+          :style {:display (if (:signed-in? @state) "none" "block")}}]
+   [ui/raised-button {:on-click (fn []
+                                  (auth/sign-out #(swap! state assoc :signed-in? false)))
+                      :style {:display (if (:signed-in? @state) "block" "none")}}
+    "Sign Out"]])
+
 (defn new-project-dialog []
   (let [project-name (atom "")]
     [ui/dialog {:modal true
@@ -40,6 +51,21 @@
        :full-width true
        :on-change #(reset! project-name (.-value (.-target %)))}]]))
 
+(defn templates []
+  [ui/card {:class "card"}
+   [ui/card-text
+    [:span
+     [:p "Create a new project:"]
+     [:a {:href "#"
+          :on-click #(swap! state assoc :new-project-template :basic-web)}
+      "Basic Web App"]]]])
+
+(defn intro []
+  [ui/card {:class "card"}
+   [ui/card-text
+    [:p "Build web apps and games with ClojureScript, entirely in your browser."]
+    [:p "Sign in with your Google account and start coding for free."]]])
+
 (defn app []
   [ui/mui-theme-provider
    {:mui-theme (get-mui-theme
@@ -47,42 +73,34 @@
                    (aset "palette" "accent1Color" "darkgray")
                    (aset "palette" "accent2Color" "darkgray")
                    (aset "palette" "accent3Color" "darkgray")))}
-   [:span
-    [:div {:style {:margin "10px"
-                   :display "inline-block"}}
-     [:div {:class "g-signin2"
-            :data-onsuccess "signIn"
-            :style {:display (if (:signed-in? @state) "none" "block")}}]
-     [ui/raised-button {:on-click (fn []
-                                    (auth/sign-out #(swap! state assoc :signed-in? false)))
-                        :style {:display (if (:signed-in? @state) "block" "none")}}
-      "Sign Out"]]
+   [:div
+    [signin-signout]
     [new-project-dialog]
-    (when (:signed-in? @state)
-      [ui/card
-       [ui/card-text
-        [:span
-         [:p "Create a new project:"]
-         [:a {:href "#"
-              :on-click #(swap! state assoc :new-project-template :basic-web)}
-          "Basic Web App"]]]])
-    [:p]
-    [ui/card
-     [ui/card-text
-      [:span
-       [:p "Build web apps and games with ClojureScript, entirely in your browser."]
-       [:p "Sign in with your Google account and start coding for free."]
-       [:h2 "Reload your code"]
-       [:p "Write your code in one tab, and see your app in another."]
-       [:p "Your changes will be pushed to the app instantly without refreshing it."]
-       [:h2 "Fire up a REPL"]
-       [:p "For even more interactivity, you can start the REPL."]
-       [:p "It’s like a little command prompt to poke and prod your app as you develop it."]
-       [:h2 "Bring in libraries"]
-       [:p "In the control panel, you can add any ClojureScript library you want."]
-       [:h2 "Take it offline"]
-       [:p "At any time, you can download your project and run it locally."]
-       [:p "It even comes configured with Nightlight, an offline version of the editor this website uses."]]]]]])
+    (if (:signed-in? @state)
+      [templates]
+      [intro])
+    [:div {:class "card-group"}
+     [ui/card {:class "small-card"}
+      [ui/card-text
+       [ui/card-title {:title "Reload your code"
+                       :style {:text-align "center"}}]
+       "Write your code in one tab, and see your app in another — instantly, without refreshing."]]
+     [ui/card {:class "small-card"}
+      [ui/card-text
+       [ui/card-title {:title "Fire up a REPL"
+                       :style {:text-align "center"}}]
+       "For even more interactivity, you can start the REPL to poke and prod your app as you develop it."]]]
+    [:div {:class "card-group"}
+     [ui/card {:class "small-card"}
+      [ui/card-text
+       [ui/card-title {:title "Bring in libraries"
+                       :style {:text-align "center"}}]
+       "You can add any ClojureScript library you want — including popular ones like core.async or Reagent."]]
+     [ui/card {:class "small-card"}
+      [ui/card-text
+       [ui/card-title {:title "Take it offline"
+                       :style {:text-align "center"}}]
+       "Download your project at any time. It'll come with Nightlight, an offline version of this website."]]]]])
 
 (r/render-component [app] (.querySelector js/document "#app"))
 
