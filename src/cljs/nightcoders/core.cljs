@@ -84,9 +84,9 @@
     [:div {:class "card-group"}
      [ui/card {:class "small-card"}
       [ui/card-text
-       [ui/card-title {:title "Reload your code"
+       [ui/card-title {:title "Reload instantly"
                        :style {:text-align "center"}}]
-       "Write your code in one tab, and see your app in another — instantly, without refreshing."]]
+       "Write your code in one tab, and see your app in another. Changes are pushed down without refreshing."]]
      [ui/card {:class "small-card"}
       [ui/card-text
        [ui/card-title {:title "Fire up a REPL"
