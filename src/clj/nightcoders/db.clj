@@ -31,12 +31,11 @@
 
 (defn insert-user [db-conn email]
   (if-let [user (first (select-user db-conn email))]
-    {:new? false :id (:id user)}
-    {:new? true
-     :id (-> (jdbc/insert! db-conn :users {:id nil :email email})
-             first
-             vals
-             first)}))
+    (:id user)
+    (-> (jdbc/insert! db-conn :users {:id nil :email email})
+        first
+        vals
+        first)))
 
 (defn insert-user! [email]
   (jdbc/with-db-connection [db-conn db-spec]

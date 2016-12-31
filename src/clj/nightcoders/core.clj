@@ -185,19 +185,15 @@
          :body (-> "public/nightcoders.html" io/resource slurp)}
     "/auth" (let [token (body-string request)]
               (if-let [payload (some-> verifier (.verify token) .getPayload)]
-                (let [{:keys [new? id]} (db/insert-user! (.getEmail payload))]
-                  (when new?
-                    (fs/create-user! id))
-                  {:status 200
-                   :session {:email (.getEmail payload)
-                             :id id}})
+                {:status 200
+                 :session {:email (.getEmail payload)
+                           :id (fs/create-user! (.getEmail payload))}}
                 {:status 403}))
     "/unauth" {:status 200
                :session {}}
     "/new-project" (when-let [user-id (-> request :session :id)]
-                     (let [project-id (db/insert-project! user-id)
-                           {:keys [project-name project-type]} (edn/read-string (body-string request))]
-                       (if (fs/create-project! user-id project-id project-type project-name)
+                     (let [{:keys [project-name project-type]} (edn/read-string (body-string request))]
+                       (if-let [project-id (fs/create-project! user-id project-type project-name)]
                          {:status 200
                           :body (str "/" user-id "/" project-id "/code/")}
                          {:status 403

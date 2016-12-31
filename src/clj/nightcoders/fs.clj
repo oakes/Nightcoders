@@ -3,7 +3,8 @@
             [clojure.string :as str]
             [clojure.edn :as edn]
             [leiningen.new.templates :as t]
-            [clj-jgit.porcelain :as jgit]))
+            [clj-jgit.porcelain :as jgit]
+            [nightcoders.db :as db]))
 
 (def ^:const parent-dir "data")
 (def ^:const pref-file-name ".nightlight.edn")
@@ -37,13 +38,16 @@
                      (edn/read-string (slurp (get-pref-file user-id project-id))))]
     (merge user-prefs proj-prefs)))
 
-(defn create-user! [id]
-  (let [f (io/file parent-dir (str id))]
-    (.mkdirs f)
-    (spit (io/file f pref-file-name)
-      (pr-str {:plan :free
-               :auto-save? true
-               :theme :dark}))))
+(defn create-user! [email]
+  (let [id (db/insert-user! email)
+        f (io/file parent-dir (str id))]
+    (when-not (.exists f)
+      (.mkdirs f)
+      (spit (io/file f pref-file-name)
+        (pr-str {:plan :free
+                 :auto-save? true
+                 :theme :dark})))
+    id))
 
 (defn sanitize-ns [s]
   (str "nightcoders."
@@ -93,15 +97,16 @@
       ["resources/nightcoders/main.cljs.edn" (render "main.cljs.edn.txt" data)]
       [pref-file-name (pr-str prefs)])))
 
-(defn create-project! [user-id project-id project-type project-name]
-  (let [f (io/file parent-dir (str user-id) (str project-id))
-        sanitized-name (str/replace project-name #"[\./]" "")
+(defn create-project! [user-id project-type project-name]
+  (let [sanitized-name (str/replace project-name #"[\./]" "")
         main-ns (sanitize-ns sanitized-name)
         path (sanitize-path sanitized-name)]
     (when (seq path)
-      (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
-        (case project-type
-          :basic-web (basic-web project-name main-ns path)))
-      (jgit/git-init f)
-      true)))
+      (let [project-id (db/insert-project! user-id)
+            f (io/file parent-dir (str user-id) (str project-id))]
+        (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
+          (case project-type
+            :basic-web (basic-web project-name main-ns path)))
+        (jgit/git-init f)
+        project-id))))
 
