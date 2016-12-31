@@ -11,12 +11,17 @@
   '[adzerk.boot-cljs :refer [cljs]]
   '[adzerk.boot-reload :refer [reload]]
   '[pandeiro.boot-http :refer [serve]]
-  '[nightlight.boot :refer [nightlight]])
+  '[nightlight.boot :refer [nightlight]]
+  '[clojure.java.io :as io])
 
 (deftask dev []
   (comp
     (watch)
     (reload :asset-path "nightcoders" :cljs-asset-path ".")
+    (with-pass-thru _
+      (when (.exists (io/file "java.policy"))
+        (System/setProperty "java.security.policy" "java.policy")
+        (System/setSecurityManager (proxy [SecurityManager] []))))
     (cljs :source-map true :optimizations :none)
     (target)))
 

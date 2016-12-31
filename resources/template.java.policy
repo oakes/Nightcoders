@@ -1,0 +1,19 @@
+grant {
+    permission java.util.PropertyPermission "*", "read,write";
+    permission java.lang.RuntimePermission "*";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.nio.file.LinkPermission "hard";
+    permission java.util.logging.LoggingPermission "control";
+    permission java.net.SocketPermission "*", "accept";
+    
+    permission java.io.FilePermission "{{home}}/.boot/-", "read,write,delete";
+    permission java.io.FilePermission "{{home}}/.m2/-", "read";
+    permission java.io.FilePermission "{{server}}/boot.jar", "read";
+    permission java.io.FilePermission "{{project}}/-", "read";
+    permission java.io.FilePermission "{{project}}/target", "read,write";
+    permission java.io.FilePermission "{{project}}/target/-", "read,write,delete";
+    
+    permission java.io.FilePermission "/Library/-", "read";
+    permission java.io.FilePermission "/System/Library/-", "read";
+    permission java.io.FilePermission "{{home}}/Library/-", "read";
+};

@@ -2,7 +2,8 @@
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
             [org.httpkit.server :refer [send! with-channel on-receive on-close]]
-            [nightcoders.fs :as fs])
+            [nightcoders.fs :as fs]
+            [stencil.core :as stencil])
   (:import [clojure.lang LineNumberingPushbackReader]
            [java.io PipedWriter PipedReader PrintWriter]
            [com.hypirion.io ClosingPipe Pipe]))
@@ -65,7 +66,13 @@
 (defn create-build-boot [deps]
   (-> (io/resource "template.build.boot")
       slurp
-      (format (str/join (map pr-str deps)))))
+      (format (str/join "\n                  "
+                (map pr-str deps)))))
+
+(defn create-java-policy [m]
+  (-> (io/resource "template.java.policy")
+      slurp
+      (stencil/render-string m)))
 
 (defn create-main-cljs-edn [main-ns]
   (pr-str
@@ -84,9 +91,13 @@
                (:deps prefs)
                (conj (:deps prefs) cljs-dep))
         build-boot (create-build-boot deps)
+        java-policy (create-java-policy {:home (System/getProperty "user.home")
+                                         :server (.getCanonicalPath (io/file "."))
+                                         :project (.getCanonicalPath f)})
         main-cljs-edn (create-main-cljs-edn (-> prefs :main-ns symbol))
         index-html (io/file f "target" "nightcoders" "index.html")]
     (spit (io/file f "build.boot") build-boot)
+    (spit (io/file f "java.policy") java-policy)
     (spit (io/file f "resources" "nightcoders" "main.cljs.edn") main-cljs-edn)
     (when (.exists index-html)
       (.delete index-html))
@@ -98,7 +109,8 @@
                     *err* out]
             (try
               (println "Warming up...")
-              (start-process! process (.getCanonicalPath f) ["boot" "--no-colors" "dev"])
+              (start-process! process (.getCanonicalPath f)
+                ["java" "-jar" (-> "boot.jar" io/file .getCanonicalPath) "--no-colors" "dev"])
               (catch Exception e (some-> (.getMessage e) println))
               (finally (println "=== Finished ===")))))))
     process))
