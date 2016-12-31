@@ -31,7 +31,7 @@
     (spit file (pr-str (merge old-prefs prefs)))))
 
 (defn get-prefs [requester-id user-id project-id]
-  (let [user-prefs (when requester-id
+  (let [user-prefs (when (seq requester-id)
                      (edn/read-string (slurp (get-pref-file requester-id))))
         proj-prefs (when (= requester-id user-id)
                      (edn/read-string (slurp (get-pref-file user-id project-id))))]
