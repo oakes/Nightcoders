@@ -4,24 +4,20 @@
   :dependencies '[[adzerk/boot-cljs "1.7.228-2" :scope "test"]
                   [adzerk/boot-reload "0.4.13" :scope "test"]
                   [pandeiro/boot-http "0.7.3" :scope "test"]
-                  [nightlight "1.3.3"]
+                  [nightlight "1.4.1-SNAPSHOT"]
                   %s])
 
 (require
   '[adzerk.boot-cljs :refer [cljs]]
   '[adzerk.boot-reload :refer [reload]]
   '[pandeiro.boot-http :refer [serve]]
-  '[nightlight.boot :refer [nightlight]]
-  '[clojure.java.io :as io])
+  '[nightlight.boot :refer [nightlight sandbox]])
 
 (deftask dev []
   (comp
     (watch)
     (reload :asset-path "nightcoders" :cljs-asset-path ".")
-    (with-pass-thru _
-      (when (.exists (io/file "java.policy"))
-        (System/setProperty "java.security.policy" "java.policy")
-        (System/setSecurityManager (proxy [SecurityManager] []))))
+    (sandbox :file "java.policy")
     (cljs :source-map true :optimizations :none)
     (target)))
 
