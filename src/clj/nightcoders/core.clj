@@ -165,24 +165,18 @@
                  (code-routes request user-id project-id leaves)
                  {:status 200
                   :headers {"Content-Type" "text/html"}
-                  :body (-> "public/loading-code.html" io/resource slurp)})
-        "public" (let [index (fs/get-public-file user-id project-id ["index.html"])]
-                   (if (seq leaves)
-                     (cond
-                       (.exists index)
-                       {:status 200
-                        :body (fs/get-public-file user-id project-id leaves)}
-                       (= leaves '("index.html"))
-                       nil
-                       :else
-                       (redirect (str "/" (str/join "/" leaves))))
-                     (if (.exists index)
+                  :body (-> "public/loading.html" io/resource slurp)})
+        "public" (if (seq leaves)
+                   {:status 200
+                    :body (slurp (fs/get-public-file user-id project-id leaves))}
+                   (let [f (fs/get-public-file user-id project-id ["index.html"])]
+                     (if (.exists f)
                        {:status 200
                         :headers {"Content-Type" "text/html"}
-                        :body index}
+                        :body f}
                        {:status 200
                         :headers {"Content-Type" "text/html"}
-                        :body (io/input-stream (io/resource "public/loading-public.html"))})))))))
+                        :body (io/input-stream (io/resource "public/refresh.html"))})))))))
 
 (defn handler [request]
   (case (:uri request)

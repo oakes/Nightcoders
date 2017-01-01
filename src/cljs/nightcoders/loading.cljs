@@ -31,15 +31,11 @@
       (.close js/document))
     "GET"))
 
-(defn ^:export authenticate []
-  (auth/load (fn [auth2]
-               (let [user (-> auth2 .-currentUser .get)]
-                 (if (.getBasicProfile user)
-                   (auth/auth-user user get-page)
-                   (get-page))))))
-
-(defn ^:export refresh []
-  (.setTimeout js/window #(.reload js/window.location) 3000))
+(auth/load (fn [auth2]
+             (let [user (-> auth2 .-currentUser .get)]
+               (if (.getBasicProfile user)
+                 (auth/auth-user user get-page)
+                 (get-page)))))
 
 (r/render-component [app] (.querySelector js/document "#app"))
 
