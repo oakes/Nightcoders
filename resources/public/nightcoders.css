@@ -14,14 +14,29 @@ button {
     margin: 10px;
 }
 
-.small-card {
-    display: inline-block;
-    width: 300px;
-    height: 300px;
-    margin: 10px;
+@media (min-width: 640px) {
+    .small-card {
+        display: inline-block;
+        width: 300px;
+        height: 300px;
+        margin: 10px;
+    }
+    
+    .card-group {
+        margin: auto;
+        width: 640px;
+    }
 }
 
-.card-group {
-    margin: auto;
-    width: 640px;
+@media (max-width: 639px) {
+    .small-card {
+        width: 300px;
+        height: 300px;
+        margin: 10px;
+    }
+    
+    .card-group {
+        margin: auto;
+        width: 320px;
+    }
 }
