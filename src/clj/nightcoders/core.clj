@@ -5,6 +5,7 @@
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.file :refer [wrap-file]]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.util.response :refer [redirect]]
             [ring.util.request :refer [body-string]]
             [org.httpkit.server :refer [run-server]]
@@ -18,7 +19,7 @@
            [java.util Collections])
   (:gen-class))
 
-(def ^:const max-file-size (* 1024 1024 2))
+(def ^:const max-file-size (* 1024 1024 20))
 (def ^:const client-id "304442508042-58fmu8pd2u2l5irdbajiucm427aof93r.apps.googleusercontent.com")
 
 (def verifier (-> (GoogleIdTokenVerifier$Builder. (NetHttpTransport.) (JacksonFactory.))
@@ -105,8 +106,13 @@
     "write-file" (when (authorized? request user-id)
                    (let [{:keys [path content]} (-> request body-string edn/read-string)
                          f (io/file (fs/get-source-dir user-id project-id) path)]
-                     (spit f content)
-                     {:status 200}))
+                     (if (> (count content) max-file-size)
+                       {:status 400
+                        :headers {}
+                        :body "File too large."}
+                       (do
+                         (spit f content)
+                         {:status 200}))))
     "new-file" (when (authorized? request user-id)
                  (when-let [{:keys [path contents]} (fs/get-file-path-and-contents (body-string request))]
                    (let [file (io/file (fs/get-source-dir user-id project-id) path)]
@@ -116,6 +122,14 @@
                      (-> (fs/get-pref-file user-id project-id)
                          (fs/update-prefs {:selection path}))
                      {:status 200})))
+    "new-file-upload" (when (authorized? request user-id)
+                        (let [files (-> request :params (get "files"))
+                              files (if (map? files) [files] files)
+                              src-dir (fs/get-source-dir user-id project-id)]
+                          (doseq [{:keys [size tempfile filename]} files]
+                            (when (<= size max-file-size)
+                              (io/copy tempfile (io/file src-dir filename)))))
+                        {:status 200})
     "rename-file" (when (authorized? request user-id)
                     (let [{:keys [from to]} (-> request body-string edn/read-string)
                           src-dir (fs/get-source-dir user-id project-id)
@@ -216,7 +230,7 @@
    (when-not @web-server
      (->> (merge {:port 0 :hosted? true} opts)
           (reset! options)
-          (run-server (-> app wrap-session))
+          (run-server (-> app wrap-session wrap-multipart-params))
           (reset! web-server)
           print-server))))
 
