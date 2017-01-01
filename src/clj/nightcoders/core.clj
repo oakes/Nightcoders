@@ -168,7 +168,7 @@
                   :body (-> "public/loading.html" io/resource slurp)})
         "public" (if (seq leaves)
                    {:status 200
-                    :body (slurp (fs/get-public-file user-id project-id leaves))}
+                    :body (fs/get-public-file user-id project-id leaves)}
                    (let [f (fs/get-public-file user-id project-id ["index.html"])]
                      (if (.exists f)
                        {:status 200
