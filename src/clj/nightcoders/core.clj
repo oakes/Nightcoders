@@ -17,7 +17,8 @@
            [com.google.api.client.googleapis.auth.oauth2 GoogleIdToken GoogleIdToken$Payload GoogleIdTokenVerifier$Builder]
            [com.google.api.client.json.jackson2 JacksonFactory]
            [com.google.api.client.http.javanet NetHttpTransport]
-           [java.util Collections])
+           [java.util Collections]
+           [java.util.zip ZipEntry ZipOutputStream])
   (:gen-class))
 
 (def ^:const max-file-size (* 1024 1024 20))
@@ -75,6 +76,22 @@
 
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
+    "export" (let [dir (fs/get-project-dir user-id project-id)
+                   zip-file (io/file dir "export.zip")
+                   excludes #{".git" "java.policy" "export.zip" "target" fs/pref-file-name}]
+               (with-open [zip (ZipOutputStream. (io/output-stream zip-file))]
+                 (doseq [f (->> (reify FilenameFilter
+                                  (accept [this dir filename]
+                                    (not (excludes filename))))
+                                (.listFiles dir)
+                                (mapcat file-seq))
+                         :when (.isFile f)]
+                   (.putNextEntry zip (ZipEntry. (get-relative-path dir f)))
+                   (io/copy f zip)
+                   (.closeEntry zip)))
+               {:status 200
+                :headers {"Content-Type" "application/zip"}
+                :body zip-file})
     "completions" {:status 200
                    :headers {"Content-Type" "text/plain"}
                    :body "[]"}
