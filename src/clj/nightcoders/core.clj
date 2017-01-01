@@ -8,6 +8,7 @@
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.util.response :refer [redirect]]
             [ring.util.request :refer [body-string]]
+            [ring.util.mime-type :refer [ext-mime-type]]
             [org.httpkit.server :refer [run-server]]
             [nightcoders.db :as db]
             [nightcoders.fs :as fs]
@@ -100,9 +101,12 @@
                      :headers {}
                      :body "File too large."}
                     :else
-                    {:status 200
-                     :headers {"Content-Type" "text/plain"}
-                     :body f}))
+                    (let [mime-type (ext-mime-type (.getCanonicalPath f))]
+                      (when (or (nil? mime-type)
+                                (.startsWith mime-type "text"))
+                        {:status 200
+                         :headers {"Content-Type" "text/plain"}
+                         :body f}))))
     "write-file" (when (authorized? request user-id)
                    (let [{:keys [path content]} (-> request body-string edn/read-string)
                          f (io/file (fs/get-source-dir user-id project-id) path)]
