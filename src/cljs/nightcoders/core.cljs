@@ -97,7 +97,7 @@
       [ui/card-text
        [ui/card-title {:title "Bring in libraries"
                        :style {:text-align "center"}}]
-       "You can add any ClojureScript library you want — including popular ones like core.async or Reagent."]]
+       "You can add any ClojureScript library you want — including popular ones like core.async and Reagent."]]
      [ui/card {:class "small-card"}
       [ui/card-text
        [ui/card-title {:title "Take it offline"
