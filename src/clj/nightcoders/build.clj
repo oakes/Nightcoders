@@ -102,7 +102,7 @@
     (spit (io/file f "resources" "nightcoders" "main.cljs.edn")
       (create-main-cljs-edn prefs))
     (when (.exists index-html)
-      (.delete index-html))
+      (.renameTo index-html (io/file (.getParentFile index-html) "index-old.html")))
     (pipe-into-console! in-pipe channel)
     (.start
       (Thread.
