@@ -122,7 +122,12 @@
        [:p
         "Download your project at any time. It'll come with "
         [:a {:href "https://sekao.net/nightlight/" :target "_blank"} "Nightlight"]
-        ", an offline version of this website."]]]]]])
+        ", an offline version of this website."]]]]
+    [:div
+     [:center
+      [:p
+       "Haphazardly made by "
+       [:a {:href "https://sekao.net/" :target "_blank"} "Zach Oakes"]]]]]])
 
 (r/render-component [app] (.querySelector js/document "#app"))
 
