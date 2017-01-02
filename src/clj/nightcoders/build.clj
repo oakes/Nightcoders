@@ -68,7 +68,7 @@
                      set
                      (contains? 'org.clojure/clojurescript))
                deps
-               (conj deps cljs-dep))]
+               (cons cljs-dep deps))]
     (-> (io/resource "template.build.boot")
         slurp
         (format (str/join "\n                  "
