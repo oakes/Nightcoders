@@ -1,10 +1,14 @@
 (ns {{namespace}}
   (:require [reagent.core :as r]))
 
-(def state (r/atom {:text "Hello, world!"}))
+(def clicks (r/atom 0))
 
 (defn content []
-  [:div (:text @state)])
+  [:div
+   [:p "You clicked " @clicks " times"]
+   [:button {:on-click (fn []
+                         (swap! clicks inc))}
+    "Click me"]])
 
 (r/render-component [content] (.querySelector js/document "#content"))
 
