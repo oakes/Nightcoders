@@ -36,15 +36,8 @@
     [(.getMessage form)]
     (pr-str form)))
 
-(defn get-relative-path
-  "Returns the selected path as a relative URI to the project path."
-  [project-file selected-file]
-  (-> (.toURI project-file)
-      (.relativize (.toURI selected-file))
-      (.getPath)))
-
 (defn file-node [^File file ^File source-dir {:keys [expansions] :as pref-state}]
-  (let [path (get-relative-path source-dir file)
+  (let [path (fs/get-relative-path source-dir file)
         children (->> (reify FilenameFilter
                         (accept [this dir filename]
                           (not (.startsWith filename "."))))
@@ -63,17 +56,6 @@
 (defn get-prefs [request user-id project-id]
   (fs/get-prefs (-> request :session :id str) user-id project-id))
 
-(defn delete-parents-recursively!
-  "Deletes the given file along with all empty parents up to top-level-file."
-  [top-level-file file]
-  (when (and (zero? (count (.listFiles file)))
-             (not (.equals file top-level-file)))
-    (io/delete-file file true)
-    (->> file
-         .getParentFile
-         (delete-parents-recursively! top-level-file)))
-  nil)
-
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
     "export.zip" (let [dir (fs/get-project-dir user-id project-id)
@@ -86,7 +68,7 @@
                                     (.listFiles dir)
                                     (mapcat file-seq))
                              :when (.isFile f)]
-                       (.putNextEntry zip (ZipEntry. (get-relative-path dir f)))
+                       (.putNextEntry zip (ZipEntry. (fs/get-relative-path dir f)))
                        (io/copy f zip)
                        (.closeEntry zip)))
                    {:status 200
@@ -158,12 +140,12 @@
                           to-file (io/file src-dir to)]
                       (.mkdirs (.getParentFile to-file))
                       (.renameTo from-file to-file)
-                      (delete-parents-recursively! src-dir from-file)
+                      (fs/delete-parents-recursively! src-dir from-file)
                       {:status 200}))
     "delete-file" (when (authorized? request user-id)
                     (let [src-dir (fs/get-source-dir user-id project-id)
                           file (->> request body-string (io/file src-dir))]
-                      (delete-parents-recursively! src-dir file)
+                      (fs/delete-parents-recursively! src-dir file)
                       {:status 200}))
     "read-state" {:status 200
                   :headers {"Content-Type" "text/plain"}

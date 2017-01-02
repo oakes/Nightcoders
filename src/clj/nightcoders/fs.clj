@@ -115,3 +115,21 @@
         (jgit/git-init f)
         project-id))))
 
+(defn get-relative-path
+  "Returns the selected path as a relative URI to the project path."
+  [project-file selected-file]
+  (-> (.toURI project-file)
+      (.relativize (.toURI selected-file))
+      (.getPath)))
+
+(defn delete-parents-recursively!
+  "Deletes the given file along with all empty parents up to top-level-file."
+  [top-level-file file]
+  (when (and (zero? (count (.listFiles file)))
+             (not (.equals file top-level-file)))
+    (io/delete-file file true)
+    (->> file
+         .getParentFile
+         (delete-parents-recursively! top-level-file)))
+  nil)
+
