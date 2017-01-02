@@ -80,9 +80,9 @@
          :contents (str "(ns " (sanitize-ns path) ")\n\n")}
         {:path s :contents ""}))))
 
-(defn basic-web
+(defn reagent-project
   [project-name main-ns path]
-  (let [render (t/renderer "basic-web")
+  (let [render (t/renderer "reagent")
         data {:app-name project-name
               :namespace main-ns
               :path path}
@@ -106,7 +106,7 @@
             f (io/file parent-dir (str user-id) (str project-id))]
         (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
           (case project-type
-            :basic-web (basic-web project-name main-ns path)))
+            :reagent (reagent-project project-name main-ns path)))
         (jgit/git-init f)
         project-id))))
 

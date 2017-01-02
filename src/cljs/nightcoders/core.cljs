@@ -34,22 +34,28 @@
     "Sign Out"]])
 
 (defn new-project-dialog []
-  (let [project-name (atom "")]
-    [ui/dialog {:modal true
-                :open (some? (:new-project-template @state))
-                :actions
-                [(r/as-element
-                   [ui/flat-button {:on-click #(swap! state dissoc :new-project-template)
-                                    :style {:margin "10px"}}
-                    "Cancel"])
-                 (r/as-element
-                   [ui/flat-button {:on-click #(new-project @project-name)
-                                    :style {:margin "10px"}}
-                    "Create Project"])]}
-     [ui/text-field
-      {:floating-label-text "Choose a name for your project"
-       :full-width true
-       :on-change #(reset! project-name (.-value (.-target %)))}]]))
+  (let [project-name (r/atom nil)]
+    (fn []
+      [ui/dialog {:modal true
+                  :open (some? (:new-project-template @state))
+                  :actions
+                  [(r/as-element
+                     [ui/flat-button {:on-click (fn []
+                                                  (swap! state dissoc :new-project-template)
+                                                  (reset! project-name nil))
+                                      :style {:margin "10px"}}
+                      "Cancel"])
+                   (r/as-element
+                     [ui/flat-button {:on-click (fn []
+                                                  (new-project @project-name)
+                                                  (reset! project-name nil))
+                                      :disabled (not (seq @project-name))
+                                      :style {:margin "10px"}}
+                      "Create Project"])]}
+       [ui/text-field
+        {:floating-label-text "Choose a name for your project"
+         :full-width true
+         :on-change #(reset! project-name (.-value (.-target %)))}]])))
 
 (defn templates []
   [:div {:class "card-group"}
@@ -58,7 +64,7 @@
      [:span
       [:p "Create a new project:"]
       [:a {:href "#"
-           :on-click #(swap! state assoc :new-project-template :basic-web)}
+           :on-click #(swap! state assoc :new-project-template :reagent)}
        "Basic Web App"]]]]])
 
 (defn intro []
