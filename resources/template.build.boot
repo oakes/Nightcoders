@@ -4,7 +4,7 @@
   :dependencies '[[adzerk/boot-cljs "1.7.228-2" :scope "test"]
                   [adzerk/boot-reload "0.4.13" :scope "test"]
                   [pandeiro/boot-http "0.7.3" :scope "test"]
-                  [nightlight "1.4.1"]
+                  [nightlight "1.4.2"]
                   %s])
 
 (require
