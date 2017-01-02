@@ -8,8 +8,12 @@ a {
     color: lightblue;
 }
 
-button, p {
+button, p, h3 {
     color: #C0C0C0;
+}
+
+.btn {
+    margin: 10px;
 }
 
 .signin-signout {

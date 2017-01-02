@@ -83,20 +83,21 @@
          :contents (str "(ns " (sanitize-ns path) ")\n\n")}
         {:path s :contents ""}))))
 
-(defn reagent-project
-  [project-name main-ns path]
-  (let [render (t/renderer "reagent")
+(defn gen-project
+  [template-name deps project-name main-ns path]
+  (let [render (t/renderer template-name)
         data {:app-name project-name
               :namespace main-ns
               :path path}
         prefs {:project-name project-name
                :main-ns main-ns
-               :deps '[[reagent "0.6.0"]]
+               :deps deps
                :selection "*CONTROL-PANEL*"}]
     (t/->files data
       ["README.md" (io/input-stream (io/resource "template.README.md"))]
       ["src/nightcoders/{{path}}.cljs" (render "core.cljs" data)]
       ["src/nightcoders/index.html" (render "index.html" data)]
+      ["src/nightcoders/style.css" (render "style.css" data)]
       ["resources/nightcoders/main.cljs.edn" (render "main.cljs.edn.txt" data)]
       [pref-file-name (pr-str prefs)])))
 
@@ -109,7 +110,8 @@
             f (io/file parent-dir (str user-id) (str project-id))]
         (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
           (case project-type
-            :reagent (reagent-project project-name main-ns path)))
+            :reagent (gen-project "reagent" '[[reagent "0.6.0"]] project-name main-ns path)
+            :play-cljs (gen-project "play-cljs" '[[play-cljs "0.8.0"]] project-name main-ns path)))
         (jgit/git-init f)
         project-id))))
 

@@ -64,18 +64,20 @@
   [:div {:class "card-group"}
    [ui/card {:style {:margin "10px"}}
     [ui/card-text
-     [:span
-      [:p "Create a new project:"]
-      [:a {:href "#"
-           :on-click #(swap! state assoc :new-project-template :reagent)}
-       "Basic Web App"]]
-     (when (seq (:projects @state))
-       [:span
-        [:p {:style {:text-align "center"}} "— or —"]
-        [:p "Open an existing project: "]
-        (for [{:keys [url project-name]} (:projects @state)]
-          [:div {:key url}
-           [:a {:href url :target "_blank"} project-name]])])]]])
+     [:center
+      [:h3 "Create a new project:"]
+      [ui/raised-button {:class "btn"
+                         :on-click #(swap! state assoc :new-project-template :reagent)}
+       "Web App"]
+      [ui/raised-button {:class "btn"
+                         :on-click #(swap! state assoc :new-project-template :play-cljs)}
+       "Game"]
+      (when (seq (:projects @state))
+        [:span
+         [:h3 "Open an existing project:"]
+         (for [{:keys [url project-name]} (:projects @state)]
+           [:div {:key url}
+            [:a {:href url :target "_blank"} project-name]])])]]]])
 
 (defn intro []
   [:div {:class "card-group"}
