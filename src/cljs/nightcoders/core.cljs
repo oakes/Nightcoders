@@ -1,5 +1,6 @@
 (ns nightcoders.core
   (:require [reagent.core :as r]
+            [cljs.reader :refer [read-string]]
             [cljs-react-material-ui.core :refer [get-mui-theme]]
             [cljs-react-material-ui.reagent :as ui]
             [nightcoders.auth :as auth])
@@ -7,7 +8,10 @@
 
 (defonce state (r/atom {}))
 
-(auth/set-sign-in #(swap! state assoc :signed-in? %))
+(auth/set-sign-in (fn [success projects]
+                    (swap! state assoc
+                      :signed-in? success
+                      :projects (when success (read-string projects)))))
 (auth/load (fn [_]))
 
 (defn new-project [project-name]
@@ -65,7 +69,14 @@
       [:p "Create a new project:"]
       [:a {:href "#"
            :on-click #(swap! state assoc :new-project-template :reagent)}
-       "Basic Web App"]]]]])
+       "Basic Web App"]]
+     (when (seq (:projects @state))
+       [:span
+        [:p {:style {:text-align "center"}} "— or —"]
+        [:p "Open an existing project: "]
+        (for [{:keys [url project-name]} (:projects @state)]
+          [:div {:key url}
+           [:a {:href url :target "_blank"} project-name]])])]]])
 
 (defn intro []
   [:div {:class "card-group"}

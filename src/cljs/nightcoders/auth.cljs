@@ -5,7 +5,7 @@
   (.send XhrIo
     "/auth"
     (fn [e]
-      (cb (.isSuccess (.-target e))))
+      (cb (.isSuccess (.-target e)) (.. e -target getResponseText)))
     "POST"
     (.-id_token (.getAuthResponse user))))
 

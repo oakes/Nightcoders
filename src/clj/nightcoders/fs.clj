@@ -12,6 +12,9 @@
 (defn project-exists? [user-id project-id]
   (.exists (io/file parent-dir (str user-id) (str project-id))))
 
+(defn get-user-dir [user-id]
+  (io/file parent-dir (str user-id)))
+
 (defn get-project-dir [user-id project-id]
   (io/file parent-dir (str user-id) (str project-id)))
 

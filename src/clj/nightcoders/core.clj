@@ -220,9 +220,21 @@
          :body (-> "public/nightcoders.html" io/resource slurp)}
     "/auth" (let [token (body-string request)]
               (if-let [payload (some-> verifier (.verify token) .getPayload)]
-                {:status 200
-                 :session {:email (.getEmail payload)
-                           :id (fs/create-user! (.getEmail payload))}}
+                (let [user-id (fs/create-user! (.getEmail payload))
+                      projects (->> (fs/get-user-dir user-id)
+                                    (.listFiles)
+                                    (map (fn [f]
+                                           (when (.isDirectory f)
+                                             (-> (io/file f fs/pref-file-name)
+                                                 slurp
+                                                 edn/read-string
+                                                 (assoc :url (str "/" user-id "/" (.getName f) "/code/"))
+                                                 (try (catch Exception _))))))
+                                    (remove nil?))]
+                  {:status 200
+                   :session {:email (.getEmail payload) :id user-id}
+                   :headers {"Content-Type" "text/plain"}
+                   :body (pr-str projects)})
                 {:status 403}))
     "/unauth" {:status 200
                :session {}}
