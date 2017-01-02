@@ -9,7 +9,7 @@
                   [paren-soup "2.7.1" :scope "test"]
                   [reagent "0.6.0" :exclusions [cljsjs/react cljsjs/react-dom] :scope "test"]
                   [cljs-react-material-ui "0.2.34" :scope "test"]
-                  [nightlight "1.4.1-SNAPSHOT"]
+                  [nightlight "1.4.1"]
                   ; clj deps
                   [org.clojure/clojure "1.8.0"]
                   [ring "1.5.0"]
