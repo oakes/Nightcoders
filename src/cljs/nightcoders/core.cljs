@@ -27,8 +27,7 @@
                :project-name project-name}))))
 
 (defn signin-signout []
-  [:div {:style {:margin "10px"
-                 :display "inline-block"}}
+  [:div {:class "signin-signout"}
    [:div {:class "g-signin2"
           :data-onsuccess "signIn"
           :style {:display (if (:signed-in? @state) "none" "block")}}]
@@ -80,7 +79,8 @@
 
 (defn intro []
   [:div {:class "card-group"}
-   [ui/card {:style {:margin "10px"}}
+   [ui/card {:style {:margin "10px"
+                     :text-align "center"}}
     [ui/card-text
      [:p "Build web apps and games with ClojureScript, entirely in your browser."]
      [:p "Sign in with your Google account and start coding for free."]]]])
@@ -103,25 +103,26 @@
       [ui/card-text
        [ui/card-title {:title "Reload instantly"
                        :style {:text-align "center"}}]
-       "Write your code in one tab, and see your app in another. Changes are pushed down without refreshing."]]
+       [:p "Write your code in one tab, and see your app in another. Changes are pushed down without refreshing."]]]
      [ui/card {:class "small-card"}
       [ui/card-text
        [ui/card-title {:title "Fire up a REPL"
                        :style {:text-align "center"}}]
-       "For even more interactivity, you can start the REPL to poke and prod your app as you develop it."]]]
+       [:p "For even more interactivity, you can start the REPL to poke and prod your app as you develop it."]]]]
     [:div {:class "card-group"}
      [ui/card {:class "small-card"}
       [ui/card-text
        [ui/card-title {:title "Bring in libraries"
                        :style {:text-align "center"}}]
-       "You can add any ClojureScript library you want — including popular ones like core.async and Reagent."]]
+       [:p "You can add any ClojureScript library you want — including popular ones like core.async and Reagent."]]]
      [ui/card {:class "small-card"}
       [ui/card-text
        [ui/card-title {:title "Take it offline"
                        :style {:text-align "center"}}]
-       "Download your project at any time. It'll come with "
-       [:a {:href "https://sekao.net/nightlight/" :target "_blank"} "Nightlight"]
-       ", an offline version of this website."]]]]])
+       [:p
+        "Download your project at any time. It'll come with "
+        [:a {:href "https://sekao.net/nightlight/" :target "_blank"} "Nightlight"]
+        ", an offline version of this website."]]]]]])
 
 (r/render-component [app] (.querySelector js/document "#app"))
 
