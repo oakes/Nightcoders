@@ -7,7 +7,7 @@
             [nightcoders.db :as db]))
 
 (def ^:const parent-dir "data")
-(def ^:const pref-file-name ".nightlight.edn")
+(def ^:const pref-file-name "prefs.edn")
 
 (defn project-exists? [user-id project-id]
   (.exists (io/file parent-dir (str user-id) (str project-id))))
