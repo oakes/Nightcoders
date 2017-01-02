@@ -85,7 +85,10 @@
                      :text-align "center"}}
     [ui/card-text
      [:p "Build web apps and games with ClojureScript, entirely in your browser."]
-     [:p "Sign in with your Google account and start coding for free."]]]])
+     [:p "Sign in with your Google account and start coding for free."]]
+    [:img {:src "screenshot.png"
+           :style {:width "95%"
+                   :margin-bottom "10px"}}]]])
 
 (defn app []
   [ui/mui-theme-provider
