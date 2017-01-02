@@ -106,20 +106,11 @@
     [:div {:class "card-group"}
      [ui/card {:class "small-card"}
       [ui/card-text
-       [ui/card-title {:title "Reload instantly"
-                       :style {:text-align "center"}}]
-       [:p "Write your code in one tab, and see your app in another. Changes are pushed down without refreshing."]]]
-     [ui/card {:class "small-card"}
-      [ui/card-text
-       [ui/card-title {:title "Fire up a REPL"
-                       :style {:text-align "center"}}]
-       [:p "For even more interactivity, you can start the REPL to poke and prod your app as you develop it."]]]]
-    [:div {:class "card-group"}
-     [ui/card {:class "small-card"}
-      [ui/card-text
        [ui/card-title {:title "Bring in libraries"
                        :style {:text-align "center"}}]
-       [:p "You can add any ClojureScript library you want — including popular ones like core.async and Reagent."]]]
+       [:p "You can add any ClojureScript library you want — including popular ones like core.async and Reagent."]]
+      [:img {:src "libraries.png"
+             :class "small-img"}]]
      [ui/card {:class "small-card"}
       [ui/card-text
        [ui/card-title {:title "Take it offline"
@@ -127,7 +118,24 @@
        [:p
         "Download your project at any time. It'll come with "
         [:a {:href "https://sekao.net/nightlight/" :target "_blank"} "Nightlight"]
-        ", an offline version of this website."]]]]
+        ", an offline version of this website."]]
+      [:img {:src "export.png"
+             :class "small-img"}]]]
+    [:div {:class "card-group"}
+     [ui/card {:class "small-card"}
+      [ui/card-text
+       [ui/card-title {:title "Reload instantly"
+                       :style {:text-align "center"}}]
+       [:p "Write your code in one tab, and see your app in another. Changes are pushed down without refreshing."]]
+      [:img {:src "reload.png"
+             :class "small-img"}]]
+     [ui/card {:class "small-card"}
+      [ui/card-text
+       [ui/card-title {:title "Fire up a REPL"
+                       :style {:text-align "center"}}]
+       [:p "For even more interactivity, you can start the REPL to poke and prod your app as you develop it."]]
+      [:img {:src "repl.png"
+             :class "small-img"}]]]
     [:div
      [:center
       [:p
