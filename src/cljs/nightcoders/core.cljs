@@ -126,7 +126,7 @@
     [:div
      [:center
       [:p
-       "Haphazardly made by "
+       "lovingly & hatingly made by "
        [:a {:href "https://sekao.net/" :target "_blank"} "Zach Oakes"]]]]]])
 
 (r/render-component [app] (.querySelector js/document "#app"))
