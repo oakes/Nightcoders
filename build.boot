@@ -33,7 +33,8 @@
        :url "https://github.com/oakes/Nightcoders.net"}
   sift {:include #{#"\.jar$"}}
   aot {:namespace '#{nightcoders.core}}
-  jar {:main 'nightcoders.core})
+  jar {:main 'nightcoders.core
+       :file "nightcoders.jar"})
 
 (deftask run []
   (comp
