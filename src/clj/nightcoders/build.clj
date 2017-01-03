@@ -1,7 +1,7 @@
 (ns nightcoders.build
   (:require [clojure.string :as str]
             [clojure.java.io :as io]
-            [org.httpkit.server :refer [send! with-channel on-receive on-close]]
+            [org.httpkit.server :refer [send! with-channel on-receive on-close close]]
             [nightcoders.fs :as fs]
             [stencil.core :as stencil])
   (:import [clojure.lang LineNumberingPushbackReader]
@@ -134,11 +134,22 @@
   (with-channel request channel
     (on-close channel
       (fn [status]
-        (when-let [process (get-in @state [user-id project-id :process])]
+        (when-let [{:keys [process]} (get-in @state [user-id project-id])]
           (stop-process! process))
         (swap! state update user-id dissoc project-id)))
     (on-receive channel
       (fn [text]
         (when-not (get-in @state [user-id project-id])
           (start user-id project-id channel))))))
+
+(defn stop-project! [user-id project-id]
+  (when-let [{:keys [channel process]} (get-in @state [user-id project-id])]
+    (close channel)
+    (stop-process! process))
+  (swap! state update user-id dissoc project-id))
+
+(defn stop-projects! [user-id]
+  (doseq [[project-id project] (get @state user-id)]
+    (stop-project! user-id project-id))
+  (swap! state dissoc user-id))
 

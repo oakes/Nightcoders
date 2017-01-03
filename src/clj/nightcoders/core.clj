@@ -51,10 +51,10 @@
       node)))
 
 (defn authorized? [request user-id]
-  (= user-id (-> request :session :id str)))
+  (= user-id (-> request :session :id)))
 
 (defn get-prefs [request user-id project-id]
-  (fs/get-prefs (-> request :session :id str) user-id project-id))
+  (fs/get-prefs (-> request :session :id) user-id project-id))
 
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
@@ -173,27 +173,29 @@
 
 (defn project-routes [request]
   (let [[user-id project-id mode & leaves] (filter seq (str/split (:uri request) #"/"))]
-    (when (and (number? (edn/read-string user-id))
-               (number? (edn/read-string project-id))
-               (fs/project-exists? user-id project-id))
-      (case mode
-        nil (redirect (str "/" user-id "/" project-id "/code/"))
-        "code" (if (seq leaves)
-                 (code-routes request user-id project-id leaves)
-                 {:status 200
-                  :headers {"Content-Type" "text/html"}
-                  :body (-> "public/loading.html" io/resource slurp)})
-        "public" (if (seq leaves)
+    (when-let [[user-id project-id] (try
+                                      [(Integer/valueOf user-id)
+                                       (Integer/valueOf project-id)]
+                                      (catch Exception _))]
+      (when (fs/project-exists? user-id project-id)
+        (case mode
+          nil (redirect (str "/" user-id "/" project-id "/code/"))
+          "code" (if (seq leaves)
+                   (code-routes request user-id project-id leaves)
                    {:status 200
-                    :body (fs/get-public-file user-id project-id leaves)}
-                   (let [f (fs/get-public-file user-id project-id ["index.html"])]
-                     (if (.exists f)
-                       {:status 200
-                        :headers {"Content-Type" "text/html"}
-                        :body f}
-                       {:status 200
-                        :headers {"Content-Type" "text/html"}
-                        :body (io/input-stream (io/resource "public/refresh.html"))})))))))
+                    :headers {"Content-Type" "text/html"}
+                    :body (-> "public/loading.html" io/resource slurp)})
+          "public" (if (seq leaves)
+                     {:status 200
+                      :body (fs/get-public-file user-id project-id leaves)}
+                     (let [f (fs/get-public-file user-id project-id ["index.html"])]
+                       (if (.exists f)
+                         {:status 200
+                          :headers {"Content-Type" "text/html"}
+                          :body f}
+                         {:status 200
+                          :headers {"Content-Type" "text/html"}
+                          :body (io/input-stream (io/resource "public/refresh.html"))}))))))))
 
 (defn handler [request]
   (case (:uri request)
@@ -227,6 +229,16 @@
                           :body (str "/" user-id "/" project-id "/code/")}
                          {:status 403
                           :body "Invalid project name."})))
+    "/delete-user" (when-let [user-id (-> request :session :id)]
+                     (build/stop-projects! user-id)
+                     (fs/delete-children-recursively! (fs/get-user-dir user-id))
+                     {:status 200
+                      :session {}})
+    "/delete-project" (when-let [user-id (-> request :session :id)]
+                        (let [project-id (-> request body-string Integer/valueOf)]
+                          (build/stop-project! user-id project-id)
+                          (fs/delete-children-recursively! (fs/get-project-dir user-id project-id))
+                          {:status 200}))
     (project-routes request)))
 
 (defn print-server [server]
