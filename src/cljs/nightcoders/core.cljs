@@ -36,7 +36,10 @@
              :project-name project-name})))
 
 (defn delete-user []
-  (.send XhrIo "/delete-user" #(.reload js/window.location) "POST"))
+  (.send XhrIo "/delete-user"
+    (fn []
+      (auth/sign-out #(.reload js/window.location))
+      "POST")))
 
 (defn delete-project [project-id]
   (.send XhrIo "/delete-project" #(.reload js/window.location) "POST" project-id))
@@ -96,7 +99,7 @@
                                               (delete-user)
                                               (swap! state dissoc :dialog))
                                   :style {:margin "10px"}}
-                  "Delete Project"])]}
+                  "Delete Account"])]}
    "Are you sure you want to your entire account?"])
 
 (defn templates []
@@ -182,6 +185,10 @@
              :class "small-img"}]]]
     [:div
      [:center
+      (when (:signed-in? @state)
+        [:p [:a {:href "#" :on-click #(swap! state assoc :dialog :delete-user)}
+             "Delete your entire account"]])
+      [:p]
       [:p
        "lovingly & hatingly made by "
        [:a {:href "https://sekao.net/" :target "_blank"} "Zach Oakes"]]]]]])

@@ -233,8 +233,7 @@
     "/delete-user" (when-let [user-id (-> request :session :id)]
                      (build/stop-projects! user-id)
                      (fs/delete-children-recursively! (fs/get-user-dir user-id))
-                     {:status 200
-                      :session {}})
+                     {:status 200})
     "/delete-project" (when-let [user-id (-> request :session :id)]
                         (let [project-id (-> request body-string Integer/valueOf)]
                           (build/stop-project! user-id project-id)
