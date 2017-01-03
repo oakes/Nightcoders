@@ -9,6 +9,7 @@
                   [paren-soup "2.7.1" :scope "test"]
                   [reagent "0.6.0" :exclusions [cljsjs/react cljsjs/react-dom] :scope "test"]
                   [cljs-react-material-ui "0.2.34" :scope "test"]
+                  [cljsjs/google-platformjs-extern "1.0.0-0" :scope "test"]
                   [nightlight "1.4.2"]
                   ; clj deps
                   [org.clojure/clojure "1.8.0"]
@@ -48,6 +49,6 @@
 
 (deftask build []
   (comp
-    (cljs :optimizations :simple)
+    (cljs :optimizations :advanced)
     (aot) (pom) (uber) (jar) (sift) (target)))
 
