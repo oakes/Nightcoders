@@ -12,19 +12,8 @@
                     (swap! state assoc
                       :signed-in? success
                       :projects (when success (read-string projects)))))
-(auth/load (fn [_]))
 
-(defn new-project [project-name]
-  (let [template (:new-project-template @state)]
-    (swap! state dissoc :new-project-template)
-    (.send XhrIo
-      "/new-project"
-      (fn [e]
-        (when (.isSuccess (.-target e))
-          (set! (.-location js/window) (.. e -target getResponseText))))
-      "POST"
-      (pr-str {:project-type template
-               :project-name project-name}))))
+(auth/load (fn [_]))
 
 (defn signin-signout []
   [:div {:class "signin-signout"}
@@ -36,21 +25,38 @@
                       :style {:display (if (:signed-in? @state) "block" "none")}}
     "Sign Out"]])
 
+(defn new-project [project-name template]
+  (.send XhrIo
+    "/new-project"
+    (fn [e]
+      (when (.isSuccess (.-target e))
+        (set! (.-location js/window) (.. e -target getResponseText))))
+    "POST"
+    (pr-str {:project-type template
+             :project-name project-name})))
+
+(defn delete-user []
+  (.send XhrIo "/delete-user" #(.reload js/window.location) "POST"))
+
+(defn delete-project [project-id]
+  (.send XhrIo "/delete-project" #(.reload js/window.location) "POST" project-id))
+
 (defn new-project-dialog []
   (let [project-name (r/atom nil)]
     (fn []
       [ui/dialog {:modal true
-                  :open (some? (:new-project-template @state))
+                  :open (= :new-project (:dialog @state))
                   :actions
                   [(r/as-element
                      [ui/flat-button {:on-click (fn []
-                                                  (swap! state dissoc :new-project-template)
+                                                  (swap! state dissoc :dialog :new-project-template)
                                                   (reset! project-name nil))
                                       :style {:margin "10px"}}
                       "Cancel"])
                    (r/as-element
                      [ui/flat-button {:on-click (fn []
-                                                  (new-project @project-name)
+                                                  (new-project @project-name (:new-project-template @state))
+                                                  (swap! state dissoc :dialog :new-project-template)
                                                   (reset! project-name nil))
                                       :disabled (not (seq @project-name))
                                       :style {:margin "10px"}}
@@ -60,6 +66,39 @@
          :full-width true
          :on-change #(reset! project-name (.-value (.-target %)))}]])))
 
+(defn delete-project-dialog []
+  (when-let [{:keys [project-name project-id]} (:project @state)]
+    [ui/dialog {:modal true
+                :open (= :delete-project (:dialog @state))
+                :actions
+                [(r/as-element
+                   [ui/flat-button {:on-click #(swap! state dissoc :dialog :project)
+                                    :style {:margin "10px"}}
+                    "Cancel"])
+                 (r/as-element
+                   [ui/flat-button {:on-click (fn []
+                                                (delete-project project-id)
+                                                (swap! state dissoc :dialog :project))
+                                    :style {:margin "10px"}}
+                    "Delete Project"])]}
+     "Are you sure you want to delete " project-name "?"]))
+
+(defn delete-user-dialog []
+  [ui/dialog {:modal true
+              :open (= :delete-user (:dialog @state))
+              :actions
+              [(r/as-element
+                 [ui/flat-button {:on-click #(swap! state dissoc :dialog)
+                                  :style {:margin "10px"}}
+                  "Cancel"])
+               (r/as-element
+                 [ui/flat-button {:on-click (fn []
+                                              (delete-user)
+                                              (swap! state dissoc :dialog))
+                                  :style {:margin "10px"}}
+                  "Delete Project"])]}
+   "Are you sure you want to your entire account?"])
+
 (defn templates []
   [:div {:class "card-group"}
    [ui/card {:style {:margin "10px"}}
@@ -67,17 +106,20 @@
      [:center
       [:h3 "Create a new project:"]
       [ui/raised-button {:class "btn"
-                         :on-click #(swap! state assoc :new-project-template :reagent)}
+                         :on-click #(swap! state assoc :dialog :new-project :new-project-template :reagent)}
        "Web App"]
       [ui/raised-button {:class "btn"
-                         :on-click #(swap! state assoc :new-project-template :play-cljs)}
+                         :on-click #(swap! state assoc :dialog :new-project :new-project-template :play-cljs)}
        "Game"]
       (when (seq (:projects @state))
         [:span
          [:h3 "Open an existing project:"]
-         (for [{:keys [url project-name]} (:projects @state)]
+         (for [{:keys [url project-name] :as project} (:projects @state)]
            [:div {:key url}
-            [:a {:href url :target "_blank"} project-name]])])]]]])
+            [:a {:href url :target "_blank"} project-name]
+            " "
+            [:a {:href "#" :on-click #(swap! state assoc :dialog :delete-project :project project)}
+             "(delete)"]])])]]]])
 
 (defn intro []
   [:div {:class "card-group"}
@@ -100,6 +142,8 @@
    [:div
     [signin-signout]
     [new-project-dialog]
+    [delete-project-dialog]
+    [delete-user-dialog]
     (if (:signed-in? @state)
       [templates]
       [intro])

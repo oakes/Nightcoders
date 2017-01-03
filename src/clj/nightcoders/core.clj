@@ -212,6 +212,7 @@
                                              (-> (io/file f fs/pref-file-name)
                                                  slurp
                                                  edn/read-string
+                                                 (assoc :project-id (.getName f))
                                                  (assoc :url (str "/" user-id "/" (.getName f) "/code/"))
                                                  (try (catch Exception _))))))
                                     (remove nil?))]
