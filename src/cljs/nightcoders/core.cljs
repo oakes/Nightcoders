@@ -189,9 +189,10 @@
         [:p [:a {:href "#" :on-click #(swap! state assoc :dialog :delete-user)}
              "Delete your entire account"]])
       [:p]
-      [:p
-       "lovingly & hatingly made by "
-       [:a {:href "https://sekao.net/" :target "_blank"} "Zach Oakes"]]]]]])
+      [:p "Made by "
+       [:a {:href "https://sekao.net/" :target "_blank"} "Zach Oakes"]]
+      [:p "Feedback and discussion welcome on "
+       [:a {:href "https://www.reddit.com/r/Nightcode/" :target "_blank"} "/r/Nightcode"]]]]]])
 
 (r/render-component [app] (.querySelector js/document "#app"))
 
