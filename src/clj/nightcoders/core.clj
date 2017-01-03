@@ -39,10 +39,7 @@
 
 (defn file-node [^File file ^File source-dir {:keys [expansions] :as pref-state}]
   (let [path (fs/get-relative-path source-dir file)
-        children (->> (reify FilenameFilter
-                        (accept [this dir filename]
-                          (not (.startsWith filename "."))))
-                      (.listFiles file)
+        children (->> (.listFiles file)
                       (mapv #(file-node % source-dir pref-state)))
         node {:primary-text (.getName file)
               :value path
@@ -93,39 +90,27 @@
     "read-file" (when-let [f (some->> request
                                       body-string
                                       (fs/secure-file (fs/get-source-dir user-id project-id)))]
-                  (cond
-                    (not (.isFile f))
-                    {:status 400
-                     :headers {}
-                     :body "Not a file."}
-                    (> (.length f) max-file-size)
-                    {:status 400
-                     :headers {}
-                     :body "File too large."}
-                    :else
-                    (let [mime-type (ext-mime-type (.getCanonicalPath f))]
-                      (when (or (nil? mime-type)
-                                (.startsWith mime-type "text"))
-                        {:status 200
-                         :headers {"Content-Type" "text/plain"}
-                         :body f}))))
+                  (let [mime-type (ext-mime-type (.getCanonicalPath f))]
+                    (when (and (.isFile f)
+                               (<= (.length f) max-file-size)
+                               (or (nil? mime-type)
+                                   (.startsWith mime-type "text")))
+                      {:status 200
+                       :headers {"Content-Type" "text/plain"}
+                       :body f})))
     "write-file" (when (authorized? request user-id)
                    (let [{:keys [path content]} (-> request body-string edn/read-string)]
                      (when-let [f (fs/secure-file (fs/get-source-dir user-id project-id) path)]
-                       (if (> (count content) max-file-size)
-                         {:status 400
-                          :headers {}
-                          :body "File too large."}
-                         (do
-                           (spit f content)
-                           {:status 200})))))
+                       (when (and (<= (count content) max-file-size)
+                                  (.exists f))
+                         (spit f content)
+                         {:status 200}))))
     "new-file" (when (authorized? request user-id)
                  (when-let [{:keys [path contents]} (fs/get-file-path-and-contents (body-string request))]
                    (when-let [f (fs/secure-file (fs/get-source-dir user-id project-id) path)]
-                     (when-not (.startsWith (.getName f) ".")
-                       (when-not (.exists f)
-                         (.mkdirs (.getParentFile f))
-                         (spit f contents))
+                     (when (not (.exists f))
+                       (.mkdirs (.getParentFile f))
+                       (spit f contents)
                        (-> (fs/get-pref-file user-id project-id)
                            (fs/update-prefs {:selection path}))
                        {:status 200}))))
