@@ -117,12 +117,12 @@
       (when (seq (:projects @state))
         [:span
          [:h3 "Open an existing project:"]
-         (for [{:keys [url project-name] :as project} (:projects @state)]
-           [:div {:key url}
-            [:a {:href url :target "_blank"} project-name]
-            " "
-            [:a {:href "#" :on-click #(swap! state assoc :dialog :delete-project :project project)}
-             "(delete)"]])])]]]])
+         (for [{:keys [url project-name project-id] :as project} (:projects @state)]
+           [ui/chip {:key project-id
+                     :style {:margin "10px"}
+                     :on-touch-tap #(set! (.-location js/window) url)
+                     :on-request-delete #(swap! state assoc :dialog :delete-project :project project)}
+            [:div {:style {:min-width "100px"}} project-name]])])]]]])
 
 (defn intro []
   [:div {:class "card-group"}
