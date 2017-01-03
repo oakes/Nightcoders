@@ -9,6 +9,13 @@
 (def ^:const parent-dir "data")
 (def ^:const pref-file-name "prefs.edn")
 
+(defn secure-file [parent-dir leaf-str]
+  (let [file (io/file parent-dir leaf-str)
+        parent-path (.toPath parent-dir)
+        path (-> file .toPath .normalize)]
+    (when (.startsWith path parent-path)
+      file)))
+
 (defn project-exists? [user-id project-id]
   (.exists (io/file parent-dir (str user-id) (str project-id))))
 
@@ -76,8 +83,7 @@
 (defn get-file-path-and-contents [s]
   (let [[path ext] (split-path-and-ext s)
         ext (str/lower-case ext)]
-    (when (and (seq path)
-               (not (.startsWith path ".")))
+    (when (seq path)
       (if (#{"clj" "cljs" "cljc"} ext)
         {:path (str (sanitize-path path) "." ext)
          :contents (str "(ns " (sanitize-ns path) ")\n\n")}

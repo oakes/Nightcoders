@@ -89,7 +89,9 @@
                         (assoc :selection (:selection prefs))
                         (assoc :options options)
                         pr-str))}
-    "read-file" (when-let [f (some->> request body-string (io/file (fs/get-source-dir user-id project-id)))]
+    "read-file" (when-let [f (some->> request
+                                      body-string
+                                      (fs/secure-file (fs/get-source-dir user-id project-id)))]
                   (cond
                     (not (.isFile f))
                     {:status 400
@@ -107,46 +109,49 @@
                          :headers {"Content-Type" "text/plain"}
                          :body f}))))
     "write-file" (when (authorized? request user-id)
-                   (let [{:keys [path content]} (-> request body-string edn/read-string)
-                         f (io/file (fs/get-source-dir user-id project-id) path)]
-                     (if (> (count content) max-file-size)
-                       {:status 400
-                        :headers {}
-                        :body "File too large."}
-                       (do
-                         (spit f content)
-                         {:status 200}))))
+                   (let [{:keys [path content]} (-> request body-string edn/read-string)]
+                     (when-let [f (fs/secure-file (fs/get-source-dir user-id project-id) path)]
+                       (if (> (count content) max-file-size)
+                         {:status 400
+                          :headers {}
+                          :body "File too large."}
+                         (do
+                           (spit f content)
+                           {:status 200})))))
     "new-file" (when (authorized? request user-id)
                  (when-let [{:keys [path contents]} (fs/get-file-path-and-contents (body-string request))]
-                   (let [file (io/file (fs/get-source-dir user-id project-id) path)]
-                     (when-not (.exists file)
-                       (.mkdirs (.getParentFile file))
-                       (spit file contents))
-                     (-> (fs/get-pref-file user-id project-id)
-                         (fs/update-prefs {:selection path}))
-                     {:status 200})))
+                   (when-let [f (fs/secure-file (fs/get-source-dir user-id project-id) path)]
+                     (when-not (.startsWith (.getName f) ".")
+                       (when-not (.exists f)
+                         (.mkdirs (.getParentFile f))
+                         (spit f contents))
+                       (-> (fs/get-pref-file user-id project-id)
+                           (fs/update-prefs {:selection path}))
+                       {:status 200}))))
     "new-file-upload" (when (authorized? request user-id)
                         (let [files (-> request :params (get "files"))
                               files (if (map? files) [files] files)
                               src-dir (fs/get-source-dir user-id project-id)]
                           (doseq [{:keys [size tempfile filename]} files]
-                            (when (<= size max-file-size)
-                              (io/copy tempfile (io/file src-dir filename)))))
+                            (when-let [f (fs/secure-file src-dir filename)]
+                              (when (<= size max-file-size)
+                                (io/copy tempfile f)))))
                         {:status 200})
     "rename-file" (when (authorized? request user-id)
                     (let [{:keys [from to]} (-> request body-string edn/read-string)
                           src-dir (fs/get-source-dir user-id project-id)
-                          from-file (io/file src-dir from)
-                          to-file (io/file src-dir to)]
-                      (.mkdirs (.getParentFile to-file))
-                      (.renameTo from-file to-file)
-                      (fs/delete-parents-recursively! src-dir from-file)
-                      {:status 200}))
+                          from-file (fs/secure-file src-dir from)
+                          to-file (fs/secure-file src-dir to)]
+                      (when (and from-file to-file)
+                        (.mkdirs (.getParentFile to-file))
+                        (.renameTo from-file to-file)
+                        (fs/delete-parents-recursively! src-dir from-file)
+                        {:status 200})))
     "delete-file" (when (authorized? request user-id)
-                    (let [src-dir (fs/get-source-dir user-id project-id)
-                          file (->> request body-string (io/file src-dir))]
-                      (fs/delete-parents-recursively! src-dir file)
-                      {:status 200}))
+                    (let [src-dir (fs/get-source-dir user-id project-id)]
+                      (when-let [f (->> request body-string (fs/secure-file src-dir))]
+                        (fs/delete-parents-recursively! src-dir f)
+                        {:status 200})))
     "read-state" {:status 200
                   :headers {"Content-Type" "text/plain"}
                   :body (pr-str (get-prefs request user-id project-id))}
