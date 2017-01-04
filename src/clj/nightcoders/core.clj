@@ -203,7 +203,7 @@
                                              (-> (io/file f fs/pref-file-name)
                                                  slurp
                                                  edn/read-string
-                                                 (assoc :project-id (.getName f))
+                                                 (assoc :project-id (Integer/valueOf (.getName f)))
                                                  (assoc :url (str "/" user-id "/" (.getName f) "/code/"))
                                                  (try (catch Exception _))))))
                                     (remove nil?))]
@@ -222,14 +222,17 @@
                          {:status 403
                           :body "Invalid project name."})))
     "/delete-user" (when-let [user-id (-> request :session :id)]
-                     (build/stop-projects! user-id)
-                     (fs/delete-children-recursively! (fs/get-user-dir user-id))
-                     {:status 200})
+                     (when (= (body-string request) (-> request :session :email))
+                       (build/stop-projects! user-id)
+                       (fs/delete-children-recursively! (fs/get-user-dir user-id))
+                       {:status 200}))
     "/delete-project" (when-let [user-id (-> request :session :id)]
-                        (let [project-id (-> request body-string Integer/valueOf)]
-                          (build/stop-project! user-id project-id)
-                          (fs/delete-children-recursively! (fs/get-project-dir user-id project-id))
-                          {:status 200}))
+                        (let [{:keys [project-id email]} (-> request body-string edn/read-string)]
+                          (when (and (number? project-id)
+                                     (= email (-> request :session :email)))
+                            (build/stop-project! user-id project-id)
+                            (fs/delete-children-recursively! (fs/get-project-dir user-id project-id))
+                            {:status 200})))
     (project-routes request)))
 
 (defn print-server [server]

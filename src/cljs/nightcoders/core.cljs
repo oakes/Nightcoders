@@ -8,8 +8,9 @@
 
 (defonce state (r/atom {}))
 
-(auth/set-sign-in (fn [success projects]
+(auth/set-sign-in (fn [user success projects]
                     (swap! state assoc
+                      :email (some-> user .getEmail)
                       :signed-in? success
                       :projects (when success (read-string projects)))))
 
@@ -35,14 +36,20 @@
     (pr-str {:project-type template
              :project-name project-name})))
 
-(defn delete-user []
-  (.send XhrIo "/delete-user"
+(defn delete-user [email]
+  (.send XhrIo
+    "/delete-user"
     (fn []
-      (auth/sign-out #(.reload js/window.location))
-      "POST")))
+      (auth/sign-out #(.reload js/window.location)))
+    "POST"
+    email))
 
-(defn delete-project [project-id]
-  (.send XhrIo "/delete-project" #(.reload js/window.location) "POST" project-id))
+(defn delete-project [project-id email]
+  (.send XhrIo
+    "/delete-project"
+    #(.reload js/window.location)
+    "POST"
+    (pr-str {:project-id project-id :email email})))
 
 (defn new-project-dialog []
   (let [project-name (r/atom nil)]
@@ -71,36 +78,54 @@
 
 (defn delete-project-dialog []
   (when-let [{:keys [project-name project-id]} (:project @state)]
-    [ui/dialog {:modal true
-                :open (= :delete-project (:dialog @state))
-                :actions
-                [(r/as-element
-                   [ui/flat-button {:on-click #(swap! state dissoc :dialog :project)
-                                    :style {:margin "10px"}}
-                    "Cancel"])
-                 (r/as-element
-                   [ui/flat-button {:on-click (fn []
-                                                (delete-project project-id)
-                                                (swap! state dissoc :dialog :project))
-                                    :style {:margin "10px"}}
-                    "Delete Project"])]}
-     "Are you sure you want to delete " project-name "?"]))
+    (let [email (r/atom nil)]
+      (fn []
+        [ui/dialog {:modal true
+                    :open (= :delete-project (:dialog @state))
+                    :actions
+                    [(r/as-element
+                       [ui/flat-button {:on-click (fn []
+                                                    (swap! state dissoc :dialog :project)
+                                                    (reset! email nil))
+                                        :style {:margin "10px"}}
+                        "Cancel"])
+                     (r/as-element
+                       [ui/flat-button {:on-click (fn []
+                                                    (delete-project project-id @email)
+                                                    (swap! state dissoc :dialog :project)
+                                                    (reset! email nil))
+                                        :disabled (not= @email (:email @state))
+                                        :style {:margin "10px"}}
+                        "Delete Project"])]}
+         [ui/text-field
+          {:floating-label-text (str "Enter your email to confirm you want to delete " project-name)
+           :full-width true
+           :on-change #(reset! email (.-value (.-target %)))}]]))))
 
 (defn delete-user-dialog []
-  [ui/dialog {:modal true
-              :open (= :delete-user (:dialog @state))
-              :actions
-              [(r/as-element
-                 [ui/flat-button {:on-click #(swap! state dissoc :dialog)
-                                  :style {:margin "10px"}}
-                  "Cancel"])
-               (r/as-element
-                 [ui/flat-button {:on-click (fn []
-                                              (delete-user)
-                                              (swap! state dissoc :dialog))
-                                  :style {:margin "10px"}}
-                  "Delete Account"])]}
-   "Are you sure you want to your entire account?"])
+  (let [email (r/atom nil)]
+    (fn []
+      [ui/dialog {:modal true
+                  :open (= :delete-user (:dialog @state))
+                  :actions
+                  [(r/as-element
+                     [ui/flat-button {:on-click (fn []
+                                                  (swap! state dissoc :dialog)
+                                                  (reset! email nil))
+                                      :style {:margin "10px"}}
+                      "Cancel"])
+                   (r/as-element
+                     [ui/flat-button {:on-click (fn []
+                                                  (delete-user @email)
+                                                  (swap! state dissoc :dialog)
+                                                  (reset! email nil))
+                                      :disabled (not= @email (:email @state))
+                                      :style {:margin "10px"}}
+                      "Delete Account"])]}
+         [ui/text-field
+          {:floating-label-text "Enter your email to confirm you want to delete your entire account"
+           :full-width true
+           :on-change #(reset! email (.-value (.-target %)))}]])))
 
 (defn templates []
   [:div {:class "card-group"}
