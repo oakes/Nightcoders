@@ -8,11 +8,10 @@
 
 (defonce state (r/atom {}))
 
-(auth/set-sign-in (fn [user success projects]
+(auth/set-sign-in (fn [success user]
                     (swap! state assoc
-                      :email (some-> user .getEmail)
                       :signed-in? success
-                      :projects (when success (read-string projects)))))
+                      :user (when success (read-string user)))))
 
 (auth/load (fn [_]))
 
@@ -22,7 +21,8 @@
           :data-onsuccess "signIn"
           :style {:display (if (:signed-in? @state) "none" "block")}}]
    [ui/raised-button {:on-click (fn []
-                                  (auth/sign-out #(swap! state assoc :signed-in? false)))
+                                  (auth/sign-out #(swap! state assoc :signed-in? false)
+                                    (select-keys (:user @state) [:email :id])))
                       :style {:display (if (:signed-in? @state) "block" "none")}}
     "Sign Out"]])
 
@@ -33,23 +33,30 @@
       (when (.isSuccess (.-target e))
         (set! (.-location js/window) (.. e -target getResponseText))))
     "POST"
-    (pr-str {:project-type template
-             :project-name project-name})))
+    (-> (:user @state)
+        (select-keys [:email :id])
+        (merge {:project-type template
+                :project-name project-name})
+        pr-str)))
 
-(defn delete-user [email]
-  (.send XhrIo
-    "/delete-user"
-    (fn []
-      (auth/sign-out #(.reload js/window.location)))
-    "POST"
-    email))
+(defn delete-user []
+  (let [m (select-keys (:user @state) [:email :id])]
+    (.send XhrIo
+      "/delete-user"
+      (fn []
+        (auth/sign-out #(.reload js/window.location) m))
+      "POST"
+      (pr-str m))))
 
-(defn delete-project [project-id email]
+(defn delete-project [project-id]
   (.send XhrIo
     "/delete-project"
     #(.reload js/window.location)
     "POST"
-    (pr-str {:project-id project-id :email email})))
+    (-> (:user @state)
+        (select-keys [:email :id])
+        (assoc :project-id project-id)
+        pr-str)))
 
 (defn new-project-dialog []
   (let [project-name (r/atom nil)]
@@ -91,10 +98,10 @@
                         "Cancel"])
                      (r/as-element
                        [ui/flat-button {:on-click (fn []
-                                                    (delete-project project-id @email)
+                                                    (delete-project project-id)
                                                     (swap! state dissoc :dialog :project)
                                                     (reset! email nil))
-                                        :disabled (not= @email (:email @state))
+                                        :disabled (not= @email (-> @state :user :email))
                                         :style {:margin "10px"}}
                         "Delete Project"])]}
          [ui/text-field
@@ -116,10 +123,10 @@
                       "Cancel"])
                    (r/as-element
                      [ui/flat-button {:on-click (fn []
-                                                  (delete-user @email)
+                                                  (delete-user)
                                                   (swap! state dissoc :dialog)
                                                   (reset! email nil))
-                                      :disabled (not= @email (:email @state))
+                                      :disabled (not= @email (-> @state :user :email))
                                       :style {:margin "10px"}}
                       "Delete Account"])]}
          [ui/text-field
@@ -138,10 +145,10 @@
      [ui/raised-button {:class "btn"
                         :on-click #(swap! state assoc :dialog :new-project :new-project-template :play-cljs)}
       "Game"]
-     (when (seq (:projects @state))
+     (when (seq (-> @state :user :projects))
        [:span
         [:h3 "Open an existing project:"]
-        (for [{:keys [url project-name project-id] :as project} (:projects @state)]
+        (for [{:keys [url project-name project-id] :as project} (-> @state :user :projects)]
           [ui/chip {:key project-id
                     :style {:margin "10px"}
                     :on-touch-tap #(set! (.-location js/window) url)

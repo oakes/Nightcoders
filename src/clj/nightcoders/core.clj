@@ -188,6 +188,11 @@
                           :headers {"Content-Type" "text/html"}
                           :body (io/input-stream (io/resource "public/refresh.html"))}))))))))
 
+(defn valid-user? [request m]
+  (when-let [{:keys [email id]} m]
+    (and (= email (-> request :session :email))
+         (= id (-> request :session :id)))))
+
 (defn handler [request]
   (case (:uri request)
     "/" {:status 200
@@ -206,30 +211,33 @@
                                                  (assoc :project-id (Integer/valueOf (.getName f)))
                                                  (assoc :url (str "/" user-id "/" (.getName f) "/code/"))
                                                  (try (catch Exception _))))))
-                                    (remove nil?))]
+                                    (remove nil?))
+                      session {:email (.getEmail payload) :id user-id}]
                   {:status 200
-                   :session {:email (.getEmail payload) :id user-id}
+                   :session session
                    :headers {"Content-Type" "text/plain"}
-                   :body (pr-str projects)})
+                   :body (pr-str (assoc session :projects projects))})
                 {:status 403}))
-    "/unauth" {:status 200
-               :session {}}
+    "/unauth" (when (valid-user? request (-> request body-string edn/read-string))
+                {:status 200
+                 :session {}})
     "/new-project" (when-let [user-id (-> request :session :id)]
-                     (let [{:keys [project-name project-type]} (edn/read-string (body-string request))]
-                       (if-let [project-id (fs/create-project! user-id project-type project-name)]
-                         {:status 200
-                          :body (str "/" user-id "/" project-id "/code/")}
-                         {:status 403
-                          :body "Invalid project name."})))
+                     (let [{:keys [project-name project-type] :as m} (-> request body-string edn/read-string)]
+                       (when (valid-user? request m)
+                         (if-let [project-id (fs/create-project! user-id project-type project-name)]
+                           {:status 200
+                            :body (str "/" user-id "/" project-id "/code/")}
+                           {:status 403
+                            :body "Invalid project name."}))))
     "/delete-user" (when-let [user-id (-> request :session :id)]
-                     (when (= (body-string request) (-> request :session :email))
+                     (when (valid-user? request (-> request body-string edn/read-string))
                        (build/stop-projects! user-id)
                        (fs/delete-children-recursively! (fs/get-user-dir user-id))
                        {:status 200}))
     "/delete-project" (when-let [user-id (-> request :session :id)]
-                        (let [{:keys [project-id email]} (-> request body-string edn/read-string)]
+                        (let [{:keys [project-id] :as m} (-> request body-string edn/read-string)]
                           (when (and (number? project-id)
-                                     (= email (-> request :session :email)))
+                                     (valid-user? request m))
                             (build/stop-project! user-id project-id)
                             (fs/delete-children-recursively! (fs/get-project-dir user-id project-id))
                             {:status 200})))

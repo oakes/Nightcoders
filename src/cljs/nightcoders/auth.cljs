@@ -5,23 +5,20 @@
   (.send XhrIo
     "/auth"
     (fn [e]
-      (cb
-        (.getBasicProfile user)
-        (.isSuccess (.-target e))
-        (.. e -target getResponseText)))
+      (cb (.isSuccess (.-target e)) (.. e -target getResponseText)))
     "POST"
     (.-id_token (.getAuthResponse user))))
 
 (defn set-sign-in [cb]
   (aset js/window "signIn" #(auth-user % cb)))
 
-(defn unauth-user [cb]
-  (.send XhrIo "/unauth" cb "POST"))
+(defn unauth-user [cb user]
+  (.send XhrIo "/unauth" cb "POST" (pr-str user)))
 
-(defn sign-out [cb]
+(defn sign-out [cb user]
   (-> (js/gapi.auth2.getAuthInstance)
       (.signOut)
-      (.then #(unauth-user cb))))
+      (.then #(unauth-user cb user))))
 
 (defn load [cb]
   (js/gapi.load "auth2"
