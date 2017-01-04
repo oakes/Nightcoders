@@ -104,44 +104,38 @@
 
 (defn templates []
   [:div {:class "card-group"}
-   [ui/card {:style {:margin "10px"}}
-    [ui/card-text
-     [:center
-      [:h3 "Create a new project:"]
-      [ui/raised-button {:class "btn"
-                         :on-click #(swap! state assoc :dialog :new-project :new-project-template :reagent)}
-       "Web App"]
-      [ui/raised-button {:class "btn"
-                         :on-click #(swap! state assoc :dialog :new-project :new-project-template :play-cljs)}
-       "Game"]
-      (when (seq (:projects @state))
-        [:span
-         [:h3 "Open an existing project:"]
-         (for [{:keys [url project-name project-id] :as project} (:projects @state)]
-           [ui/chip {:key project-id
-                     :style {:margin "10px"}
-                     :on-touch-tap #(set! (.-location js/window) url)
-                     :on-request-delete #(swap! state assoc :dialog :delete-project :project project)}
-            [:div {:style {:min-width "100px"}} project-name]])])]]]])
+   [:div {:style {:margin "10px"}}
+    [:center
+     [:h3 "Create a new project:"]
+     [ui/raised-button {:class "btn"
+                        :on-click #(swap! state assoc :dialog :new-project :new-project-template :reagent)}
+      "Web App"]
+     [ui/raised-button {:class "btn"
+                        :on-click #(swap! state assoc :dialog :new-project :new-project-template :play-cljs)}
+      "Game"]
+     (when (seq (:projects @state))
+       [:span
+        [:h3 "Open an existing project:"]
+        (for [{:keys [url project-name project-id] :as project} (:projects @state)]
+          [ui/chip {:key project-id
+                    :style {:margin "10px"}
+                    :on-touch-tap #(set! (.-location js/window) url)
+                    :on-request-delete #(swap! state assoc :dialog :delete-project :project project)}
+           [:div {:style {:min-width "100px"}} project-name]])])]]])
 
 (defn intro []
   [:div {:class "card-group"}
-   [ui/card {:style {:margin "10px"
-                     :text-align "center"}}
-    [ui/card-text
-     [:p "Build web apps and games with ClojureScript, entirely in your browser."]
-     [:p "Sign in with your Google account and start coding for free."]]
+   [:div {:style {:margin "10px"
+                  :text-align "center"}}
+    [:p "Build web apps and games with ClojureScript, entirely in your browser."]
+    [:p "Sign in with your Google account and start coding for free."]
     [:img {:src "screenshot.png"
            :style {:width "95%"
                    :margin-bottom "10px"}}]]])
 
 (defn app []
   [ui/mui-theme-provider
-   {:mui-theme (get-mui-theme
-                 (doto (aget js/MaterialUIStyles "DarkRawTheme")
-                   (aset "palette" "accent1Color" "darkgray")
-                   (aset "palette" "accent2Color" "darkgray")
-                   (aset "palette" "accent3Color" "darkgray")))}
+   {:mui-theme (get-mui-theme (aget js/MaterialUIStyles "DarkRawTheme"))}
    [:div
     [signin-signout]
     [new-project-dialog]
@@ -151,36 +145,28 @@
       [templates]
       [intro])
     [:div {:class "card-group"}
-     [ui/card {:class "small-card"}
-      [ui/card-text
-       [ui/card-title {:title "Bring in libraries"
-                       :style {:text-align "center"}}]
-       [:p "You can add any ClojureScript library you want — including popular ones like core.async and Reagent."]]
+     [:div {:class "small-card"}
+      [:center [:h2 "Bring in libraries"]]
+      [:p "You can add any ClojureScript library you want — including popular ones like core.async and Reagent."]
       [:img {:src "libraries.png"
              :class "small-img"}]]
-     [ui/card {:class "small-card"}
-      [ui/card-text
-       [ui/card-title {:title "Take it offline"
-                       :style {:text-align "center"}}]
-       [:p
-        "Download your project at any time. It'll come with "
-        [:a {:href "https://sekao.net/nightlight/" :target "_blank"} "Nightlight"]
-        ", an offline version of this website."]]
+     [:div {:class "small-card"}
+      [:center [:h2 "Take it offline"]]
+      [:p
+       "Download your project at any time. It'll come with "
+       [:a {:href "https://sekao.net/nightlight/" :target "_blank"} "Nightlight"]
+       ", an offline version of this website."]
       [:img {:src "export.png"
              :class "small-img"}]]]
     [:div {:class "card-group"}
-     [ui/card {:class "small-card"}
-      [ui/card-text
-       [ui/card-title {:title "Reload instantly"
-                       :style {:text-align "center"}}]
-       [:p "Write your code in one tab, and see your app in another. Changes are pushed down without refreshing."]]
+     [:div {:class "small-card"}
+      [:center [:h2 "Reload instantly"]]
+      [:p "Write your code in one tab, and see your app in another. Changes are pushed down without refreshing."]
       [:img {:src "reload.png"
              :class "small-img"}]]
-     [ui/card {:class "small-card"}
-      [ui/card-text
-       [ui/card-title {:title "Fire up a REPL"
-                       :style {:text-align "center"}}]
-       [:p "For even more interactivity, you can start the REPL to poke and prod your app as you develop it."]]
+     [:div {:class "small-card"}
+      [:center [:h2 "Fire up a REPL"]]
+      [:p "For even more interactivity, you can start the REPL to poke and prod your app as you develop it."]
       [:img {:src "repl.png"
              :class "small-img"}]]]
     [:div

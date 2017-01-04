@@ -1,6 +1,6 @@
 html, body {
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-    background-color: #272b30;
+    background-color: #4F5A64;
     color: #C0C0C0;
 }
 
@@ -10,6 +10,10 @@ a {
 
 button, p, h3 {
     color: #C0C0C0;
+}
+
+img {
+    border-radius: 5px;
 }
 
 .btn {
@@ -22,9 +26,7 @@ button, p, h3 {
 }
 
 .small-img {
-    height: 100px;
     width: 100%;
-    object-fit: contain;
 }
 
 @media (min-width: 640px) {
