@@ -11,16 +11,12 @@
   '[adzerk.boot-cljs :refer [cljs]]
   '[adzerk.boot-reload :refer [reload]]
   '[pandeiro.boot-http :refer [serve]]
-  '[nightlight.boot :refer [nightlight sandbox]]
-  '[clojure.java.io :as io])
+  '[nightlight.boot :refer [nightlight sandbox]])
 
 (deftask dev []
   (comp
     (watch)
-    (reload
-      :asset-path "nightcoders"
-      :cljs-asset-path "."
-      :secure (.exists (io/file "java.policy")))
+    (reload :asset-path "nightcoders" :cljs-asset-path ".")
     (sandbox :file "java.policy")
     (cljs :source-map true :optimizations :none)
     (target)))
