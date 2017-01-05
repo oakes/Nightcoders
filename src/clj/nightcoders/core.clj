@@ -132,7 +132,9 @@
                         (.mkdirs (.getParentFile to-file))
                         (.renameTo from-file to-file)
                         (fs/delete-parents-recursively! src-dir from-file)
-                        {:status 200})))
+                        {:status 200
+                         :headers {"Content-Type" "text/plain"}
+                         :body (fs/get-relative-path src-dir to-file)})))
     "delete-file" (when (authorized? request user-id)
                     (let [src-dir (fs/get-source-dir user-id project-id)]
                       (when-let [f (->> request body-string (fs/secure-file src-dir))]
