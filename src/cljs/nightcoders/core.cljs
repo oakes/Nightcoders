@@ -22,9 +22,9 @@
    [:div {:class "g-signin2"
           :data-onsuccess "signIn"
           :style {:display (if (:signed-in? @state) "none" "block")}}]
-   [ui/raised-button {:on-click (fn []
-                                  (auth/sign-out #(swap! state assoc :signed-in? false)
-                                    (:token @state)))
+   [ui/raised-button {:on-touch-tap (fn []
+                                      (auth/sign-out #(swap! state assoc :signed-in? false)
+                                        (:token @state)))
                       :style {:display (if (:signed-in? @state) "block" "none")}}
     "Sign Out"]])
 
@@ -63,16 +63,16 @@
                   :open (= :new-project (:dialog @state))
                   :actions
                   [(r/as-element
-                     [ui/flat-button {:on-click (fn []
-                                                  (swap! state dissoc :dialog :new-project-template)
-                                                  (reset! project-name nil))
+                     [ui/flat-button {:on-touch-tap (fn []
+                                                      (swap! state dissoc :dialog :new-project-template)
+                                                      (reset! project-name nil))
                                       :style {:margin "10px"}}
                       "Cancel"])
                    (r/as-element
-                     [ui/flat-button {:on-click (fn []
-                                                  (new-project @project-name (:new-project-template @state))
-                                                  (swap! state dissoc :dialog :new-project-template)
-                                                  (reset! project-name nil))
+                     [ui/flat-button {:on-touch-tap (fn []
+                                                      (new-project @project-name (:new-project-template @state))
+                                                      (swap! state dissoc :dialog :new-project-template)
+                                                      (reset! project-name nil))
                                       :disabled (not (seq @project-name))
                                       :style {:margin "10px"}}
                       "Create Project"])]}
@@ -89,16 +89,16 @@
                     :open (= :delete-project (:dialog @state))
                     :actions
                     [(r/as-element
-                       [ui/flat-button {:on-click (fn []
-                                                    (swap! state dissoc :dialog :project)
-                                                    (reset! email nil))
+                       [ui/flat-button {:on-touch-tap (fn []
+                                                        (swap! state dissoc :dialog :project)
+                                                        (reset! email nil))
                                         :style {:margin "10px"}}
                         "Cancel"])
                      (r/as-element
-                       [ui/flat-button {:on-click (fn []
-                                                    (delete-project project-id)
-                                                    (swap! state dissoc :dialog :project)
-                                                    (reset! email nil))
+                       [ui/flat-button {:on-touch-tap (fn []
+                                                        (delete-project project-id)
+                                                        (swap! state dissoc :dialog :project)
+                                                        (reset! email nil))
                                         :disabled (not= @email (-> @state :user :email))
                                         :style {:margin "10px"}}
                         "Delete Project"])]}
@@ -114,16 +114,16 @@
                   :open (= :delete-user (:dialog @state))
                   :actions
                   [(r/as-element
-                     [ui/flat-button {:on-click (fn []
-                                                  (swap! state dissoc :dialog)
-                                                  (reset! email nil))
+                     [ui/flat-button {:on-touch-tap (fn []
+                                                      (swap! state dissoc :dialog)
+                                                      (reset! email nil))
                                       :style {:margin "10px"}}
                       "Cancel"])
                    (r/as-element
-                     [ui/flat-button {:on-click (fn []
-                                                  (delete-user)
-                                                  (swap! state dissoc :dialog)
-                                                  (reset! email nil))
+                     [ui/flat-button {:on-touch-tap (fn []
+                                                      (delete-user)
+                                                      (swap! state dissoc :dialog)
+                                                      (reset! email nil))
                                       :disabled (not= @email (-> @state :user :email))
                                       :style {:margin "10px"}}
                       "Delete Account"])]}
@@ -138,10 +138,10 @@
     [:center
      [:h3 "Create a new project:"]
      [ui/raised-button {:class "btn"
-                        :on-click #(swap! state assoc :dialog :new-project :new-project-template :reagent)}
+                        :on-touch-tap #(swap! state assoc :dialog :new-project :new-project-template :reagent)}
       "Web App"]
      [ui/raised-button {:class "btn"
-                        :on-click #(swap! state assoc :dialog :new-project :new-project-template :play-cljs)}
+                        :on-touch-tap #(swap! state assoc :dialog :new-project :new-project-template :play-cljs)}
       "Game"]
      (when (seq (-> @state :user :projects))
        [:span
@@ -202,7 +202,7 @@
     [:div
      [:center
       (when (:signed-in? @state)
-        [:p [:a {:href "#" :on-click #(swap! state assoc :dialog :delete-user)}
+        [:p [:a {:href "#" :on-touch-tap #(swap! state assoc :dialog :delete-user)}
              "Delete your entire account"]])
       [:p]
       [:p "Made by "
