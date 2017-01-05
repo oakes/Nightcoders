@@ -188,11 +188,6 @@
                           :headers {"Content-Type" "text/html"}
                           :body (io/input-stream (io/resource "public/refresh.html"))}))))))))
 
-(defn valid-user? [request m]
-  (when-let [{:keys [email id]} m]
-    (and (= email (-> request :session :email))
-         (= id (-> request :session :id)))))
-
 (defn handler [request]
   (case (:uri request)
     "/" {:status 200
@@ -218,26 +213,26 @@
                    :headers {"Content-Type" "text/plain"}
                    :body (pr-str (assoc session :projects projects))})
                 {:status 403}))
-    "/unauth" (when (valid-user? request (-> request body-string edn/read-string))
+    "/unauth" (when (.verify verifier (body-string request))
                 {:status 200
                  :session {}})
     "/new-project" (when-let [user-id (-> request :session :id)]
-                     (let [{:keys [project-name project-type] :as m} (-> request body-string edn/read-string)]
-                       (when (valid-user? request m)
+                     (let [{:keys [project-name project-type token]} (-> request body-string edn/read-string)]
+                       (when (.verify verifier token)
                          (if-let [project-id (fs/create-project! user-id project-type project-name)]
                            {:status 200
                             :body (str "/" user-id "/" project-id "/code/")}
                            {:status 403
                             :body "Invalid project name."}))))
     "/delete-user" (when-let [user-id (-> request :session :id)]
-                     (when (valid-user? request (-> request body-string edn/read-string))
+                     (when (.verify verifier (body-string request))
                        (build/stop-projects! user-id)
                        (fs/delete-children-recursively! (fs/get-user-dir user-id))
                        {:status 200}))
     "/delete-project" (when-let [user-id (-> request :session :id)]
-                        (let [{:keys [project-id] :as m} (-> request body-string edn/read-string)]
+                        (let [{:keys [project-id token]} (-> request body-string edn/read-string)]
                           (when (and (number? project-id)
-                                     (valid-user? request m))
+                                     (.verify verifier token))
                             (build/stop-project! user-id project-id)
                             (fs/delete-children-recursively! (fs/get-project-dir user-id project-id))
                             {:status 200})))

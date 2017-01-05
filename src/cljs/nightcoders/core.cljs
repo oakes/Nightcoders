@@ -8,10 +8,12 @@
 
 (defonce state (r/atom {}))
 
-(auth/set-sign-in (fn [success user]
-                    (swap! state assoc
-                      :signed-in? success
-                      :user (when success (read-string user)))))
+(auth/set-sign-in (fn [success? user token]
+                    (when success?
+                      (swap! state assoc
+                        :signed-in? true
+                        :user (read-string user)
+                        :token token))))
 
 (auth/load (fn [_]))
 
@@ -22,7 +24,7 @@
           :style {:display (if (:signed-in? @state) "none" "block")}}]
    [ui/raised-button {:on-click (fn []
                                   (auth/sign-out #(swap! state assoc :signed-in? false)
-                                    (select-keys (:user @state) [:email :id])))
+                                    (:token @state)))
                       :style {:display (if (:signed-in? @state) "block" "none")}}
     "Sign Out"]])
 
@@ -33,30 +35,26 @@
       (when (.isSuccess (.-target e))
         (set! (.-location js/window) (.. e -target getResponseText))))
     "POST"
-    (-> (:user @state)
-        (select-keys [:email :id])
-        (merge {:project-type template
-                :project-name project-name})
-        pr-str)))
+    (pr-str {:project-type template
+             :project-name project-name
+             :token (:token @state)})))
 
 (defn delete-user []
-  (let [m (select-keys (:user @state) [:email :id])]
+  (let [token (:token @state)]
     (.send XhrIo
       "/delete-user"
       (fn []
-        (auth/sign-out #(.reload js/window.location) m))
+        (auth/sign-out #(.reload js/window.location) token))
       "POST"
-      (pr-str m))))
+      token)))
 
 (defn delete-project [project-id]
   (.send XhrIo
     "/delete-project"
     #(.reload js/window.location)
     "POST"
-    (-> (:user @state)
-        (select-keys [:email :id])
-        (assoc :project-id project-id)
-        pr-str)))
+    (pr-str {:project-id project-id
+             :token (:token @state)})))
 
 (defn new-project-dialog []
   (let [project-name (r/atom nil)]
