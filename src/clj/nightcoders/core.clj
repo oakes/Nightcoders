@@ -54,6 +54,27 @@
 (defn get-prefs [request user-id project-id]
   (fs/get-prefs (-> request :session :id) user-id project-id))
 
+(defn user-routes [user-id path-parts]
+  (let [[project-id mode & leaves] path-parts]
+    (when-let [[user-id project-id] (try
+                                      [(Integer/valueOf user-id)
+                                       (Integer/valueOf project-id)]
+                                      (catch Exception _))]
+      (when (fs/project-exists? user-id project-id)
+        (case mode
+          "public" (if (seq leaves)
+                     {:status 200
+                      :body (fs/get-public-file user-id project-id leaves)}
+                     (let [f (fs/get-public-file user-id project-id ["index.html"])]
+                       (if (.exists f)
+                         {:status 200
+                          :headers {"Content-Type" "text/html"}
+                          :body f}
+                         {:status 200
+                          :headers {"Content-Type" "text/html"}
+                          :body (io/input-stream (io/resource "public/refresh.html"))})))
+          nil)))))
+
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
     "export.zip" (let [dir (fs/get-project-dir user-id project-id)
@@ -78,9 +99,15 @@
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
             :body (let [prefs (get-prefs request user-id project-id)
+                        url (if (:dev? @options)
+                              "../public/"
+                              (str
+                                "http://" user-id "."
+                                (get-in request [:headers "host"])
+                                "/" project-id "/public/"))
                         options (assoc @options
                                   :read-only? (not (authorized? request user-id))
-                                  :url "../public/")]
+                                  :url url)]
                     (-> (fs/get-source-dir user-id project-id)
                         (file-node (fs/get-source-dir user-id project-id) prefs)
                         (assoc :primary-text (or (:project-name prefs) "Nightcoders"))
@@ -164,8 +191,8 @@
       {:status 200
        :body (io/input-stream (io/resource (str "public/" (str/join "/" leaves))))})))
 
-(defn project-routes [request]
-  (let [[user-id project-id mode & leaves] (filter seq (str/split (:uri request) #"/"))]
+(defn project-routes [request path-parts]
+  (let [[user-id project-id mode & leaves] path-parts]
     (when-let [[user-id project-id] (try
                                       [(Integer/valueOf user-id)
                                        (Integer/valueOf project-id)]
@@ -178,19 +205,11 @@
                    {:status 200
                     :headers {"Content-Type" "text/html"}
                     :body (-> "public/loading.html" io/resource slurp)})
-          "public" (if (seq leaves)
-                     {:status 200
-                      :body (fs/get-public-file user-id project-id leaves)}
-                     (let [f (fs/get-public-file user-id project-id ["index.html"])]
-                       (if (.exists f)
-                         {:status 200
-                          :headers {"Content-Type" "text/html"}
-                          :body f}
-                         {:status 200
-                          :headers {"Content-Type" "text/html"}
-                          :body (io/input-stream (io/resource "public/refresh.html"))}))))))))
+          "public" (when (:dev? @options)
+                     (user-routes user-id (concat [project-id mode] leaves)))
+          nil)))))
 
-(defn handler [request]
+(defn main-routes [request path-parts]
   (case (:uri request)
     "/" {:status 200
          :headers {"Content-Type" "text/html"}
@@ -238,7 +257,16 @@
                             (build/stop-project! user-id project-id)
                             (fs/delete-children-recursively! (fs/get-project-dir user-id project-id))
                             {:status 200})))
-    (project-routes request)))
+    (project-routes request path-parts)))
+
+(defn handler [request]
+  (let [host (get-in request [:headers "host"])
+        host-parts (str/split host #"\.")
+        path-parts (filter seq (str/split (:uri request) #"/"))]
+    (case (count host-parts)
+      2 (main-routes request path-parts)
+      3 (user-routes (first host-parts) path-parts)
+      nil)))
 
 (defn print-server [server]
   (println
@@ -266,7 +294,7 @@
     (.mkdirs (io/file "target" "public"))
     (-> handler
         (wrap-file "target/public")
-        (start opts))))
+        (start (assoc opts :dev? true)))))
 
 (defn -main []
   (start {:port 3000}))
