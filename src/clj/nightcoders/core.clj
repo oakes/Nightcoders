@@ -81,6 +81,10 @@
                           :body (io/input-stream (io/resource "public/refresh.html"))})))
           nil)))))
 
+(defn localhost? [request]
+  (let [^String host (get-in request [:headers "host"])]
+    (.startsWith host "localhost")))
+
 (defn code-routes [request user-id project-id leaves]
   (case (first leaves)
     "export.zip" (let [dir (fs/get-project-dir user-id project-id)
@@ -105,7 +109,7 @@
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
             :body (let [prefs (get-prefs request user-id project-id)
-                        url (if (:dev? @options)
+                        url (if (localhost? request)
                               "../public/"
                               (get-public-url request user-id project-id))
                         options (assoc @options
@@ -208,7 +212,7 @@
                    {:status 200
                     :headers {"Content-Type" "text/html"}
                     :body (-> "public/loading.html" io/resource slurp)})
-          "public" (if (:dev? @options)
+          "public" (if (localhost? request)
                      (user-routes user-id (concat [project-id mode] leaves))
                      (redirect (get-public-url request user-id project-id) 301))
           nil)))))
@@ -260,10 +264,10 @@
     (project-routes request path-parts)))
 
 (defn handler [request]
-  (let [host (get-in request [:headers "host"])
+  (let [^String host (get-in request [:headers "host"])
         host-parts (str/split host #"\.")
         path-parts (filter seq (str/split (:uri request) #"/"))]
-    (if (:dev? @options)
+    (if (.startsWith host "localhost")
       (main-routes request path-parts)
       (case (count host-parts)
         2 (main-routes request path-parts)
@@ -296,7 +300,7 @@
     (.mkdirs (io/file "target" "public"))
     (-> handler
         (wrap-file "target/public")
-        (start (assoc opts :dev? true)))))
+        (start opts))))
 
 (defn -main []
   (start {:port 3000}))
