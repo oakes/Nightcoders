@@ -210,7 +210,7 @@
                     :body (-> "public/loading.html" io/resource slurp)})
           "public" (if (:dev? @options)
                      (user-routes user-id (concat [project-id mode] leaves))
-                     (redirect (get-public-url request user-id project-id)))
+                     (redirect (get-public-url request user-id project-id) 301))
           nil)))))
 
 (defn main-routes [request path-parts]
