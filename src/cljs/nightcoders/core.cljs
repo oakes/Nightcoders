@@ -8,12 +8,11 @@
 
 (defonce state (r/atom {}))
 
-(auth/set-sign-in (fn [success? user token]
+(auth/set-sign-in (fn [success? user]
                     (when success?
                       (swap! state assoc
                         :signed-in? true
-                        :user (read-string user)
-                        :token token))))
+                        :user (read-string user)))))
 
 (auth/load (fn [_]))
 
@@ -23,8 +22,7 @@
           :data-onsuccess "signIn"
           :style {:display (if (:signed-in? @state) "none" "block")}}]
    [ui/raised-button {:on-touch-tap (fn []
-                                      (auth/sign-out #(swap! state assoc :signed-in? false)
-                                        (:token @state)))
+                                      (auth/sign-out #(swap! state assoc :signed-in? false)))
                       :style {:display (if (:signed-in? @state) "block" "none")}}
     "Sign Out"]])
 
@@ -36,25 +34,21 @@
         (set! (.-location js/window) (.. e -target getResponseText))))
     "POST"
     (pr-str {:project-type template
-             :project-name project-name
-             :token (:token @state)})))
+             :project-name project-name})))
 
 (defn delete-user []
-  (let [token (:token @state)]
-    (.send XhrIo
-      "/delete-user"
-      (fn []
-        (auth/sign-out #(.reload js/window.location) token))
-      "POST"
-      token)))
+  (.send XhrIo
+    "/delete-user"
+    (fn []
+      (auth/sign-out #(.reload js/window.location)))
+    "POST"))
 
 (defn delete-project [project-id]
   (.send XhrIo
     "/delete-project"
     #(.reload js/window.location)
     "POST"
-    (pr-str {:project-id project-id
-             :token (:token @state)})))
+    (pr-str {:project-id project-id})))
 
 (defn new-project-dialog []
   (let [project-name (r/atom nil)]

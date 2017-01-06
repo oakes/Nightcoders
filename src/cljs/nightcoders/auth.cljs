@@ -2,24 +2,23 @@
   (:import goog.net.XhrIo))
 
 (defn auth-user [user cb]
-  (let [token (.-id_token (.getAuthResponse user))]
-    (.send XhrIo
-      "/auth"
-      (fn [e]
-        (cb (.isSuccess (.-target e)) (.. e -target getResponseText) token))
-      "POST"
-      token)))
+  (.send XhrIo
+    "/auth"
+    (fn [e]
+      (cb (.isSuccess (.-target e)) (.. e -target getResponseText)))
+    "POST"
+    (.-id_token (.getAuthResponse user))))
 
 (defn set-sign-in [cb]
   (aset js/window "signIn" #(auth-user % cb)))
 
-(defn unauth-user [cb token]
-  (.send XhrIo "/unauth" cb "POST" token))
+(defn unauth-user [cb]
+  (.send XhrIo "/unauth" cb "POST"))
 
-(defn sign-out [cb token]
+(defn sign-out [cb]
   (-> (js/gapi.auth2.getAuthInstance)
       (.signOut)
-      (.then #(unauth-user cb token))))
+      (.then #(unauth-user cb))))
 
 (defn load [cb]
   (js/gapi.load "auth2"
