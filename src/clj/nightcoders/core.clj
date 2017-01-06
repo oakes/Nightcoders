@@ -54,6 +54,12 @@
 (defn get-prefs [request user-id project-id]
   (fs/get-prefs (-> request :session :id) user-id project-id))
 
+(defn get-public-url [request user-id project-id]
+  (str
+    "http://" user-id "."
+    (get-in request [:headers "host"])
+    "/" project-id "/public/"))
+
 (defn user-routes [user-id path-parts]
   (let [[project-id mode & leaves] path-parts]
     (when-let [[user-id project-id] (try
@@ -101,10 +107,7 @@
             :body (let [prefs (get-prefs request user-id project-id)
                         url (if (:dev? @options)
                               "../public/"
-                              (str
-                                "http://" user-id "."
-                                (get-in request [:headers "host"])
-                                "/" project-id "/public/"))
+                              (get-public-url request user-id project-id))
                         options (assoc @options
                                   :read-only? (not (authorized? request user-id))
                                   :url url)]
@@ -205,8 +208,9 @@
                    {:status 200
                     :headers {"Content-Type" "text/html"}
                     :body (-> "public/loading.html" io/resource slurp)})
-          "public" (when (:dev? @options)
-                     (user-routes user-id (concat [project-id mode] leaves)))
+          "public" (if (:dev? @options)
+                     (user-routes user-id (concat [project-id mode] leaves))
+                     (redirect (get-public-url request user-id project-id)))
           nil)))))
 
 (defn main-routes [request path-parts]
