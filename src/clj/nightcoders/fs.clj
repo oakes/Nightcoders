@@ -75,10 +75,11 @@
       (str/replace #"[^a-z0-9_/]" "")))
 
 (defn split-path-and-ext [s]
-  (let [last-dot (.lastIndexOf s ".")
-        path (subs s 0 last-dot)
-        ext (subs s (inc last-dot))]
-    [path ext]))
+  (let [last-dot (.lastIndexOf s ".")]
+    (if (< last-dot 0)
+      [s ""]
+      [(subs s 0 last-dot)
+       (subs s (inc last-dot))])))
 
 (defn get-file-path-and-contents [s]
   (let [[path ext] (split-path-and-ext s)
