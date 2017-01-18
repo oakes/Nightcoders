@@ -42,6 +42,7 @@
   [process]
   (when-let [p @process]
     (.destroy p)
+    (.waitFor p)
     (reset! process nil)))
 
 (defn start-process!
