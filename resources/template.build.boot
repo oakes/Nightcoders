@@ -3,7 +3,8 @@
   :resource-paths #{"src" "resources"}
   :dependencies '[[adzerk/boot-cljs "1.7.228-2" :scope "test"]
                   [adzerk/boot-reload "0.4.13" :scope "test"]
-                  [pandeiro/boot-http "0.7.3" :scope "test"]
+                  [pandeiro/boot-http "0.7.3" :scope "test"
+                   :exclusions [org.clojure/clojure]]
                   [nightlight "1.5.1"]
                   %s])
 
