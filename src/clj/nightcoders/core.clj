@@ -61,10 +61,15 @@
     "/" project-id "/public/"))
 
 (defn get-code-url [request user-id project-id]
-  (str
-    "http://"
-    (get-in request [:headers "host"])
-    "/" user-id "/" project-id "/code/"))
+  (let [host (get-in request [:headers "host"])
+        host-parts (str/split host #"\.")
+        host-parts (if (> (count host-parts) 1)
+                     (rest host-parts)
+                     host-parts)]
+    (str
+      "http://"
+      (str/join "." host-parts)
+      "/" user-id "/" project-id "/code/")))
 
 (defn user-routes [request user-id path-parts]
   (let [[project-id mode & leaves] path-parts]
@@ -85,7 +90,6 @@
                          {:status 200
                           :headers {"Content-Type" "text/html"}
                           :body (io/input-stream (io/resource "public/refresh.html"))})))
-          "code" (redirect (get-code-url request user-id project-id) 301)
           nil)))))
 
 (defn localhost? [request]
