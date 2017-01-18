@@ -7,7 +7,7 @@
   (:import [org.eclipse.jgit.api InitCommand]))
 
 (def ^:const parent-dir "data")
-(def ^:const pref-file-name "prefs.edn")
+(def ^:const pref-file-name ".nightlight.edn")
 
 (defn secure-file [parent-dir leaf-str]
   (let [file (io/file parent-dir leaf-str)
