@@ -287,6 +287,9 @@
        (start opts)))
   ([app opts]
    (db/create-tables)
+   (doseq [f (file-seq (io/file fs/parent-dir))
+           :when (= "prefs.edn" (.getName f))]
+     (.renameTo f (io/file (.getParentFile f) fs/pref-file-name)))
    (when-not @web-server
      (->> (merge {:port 0 :hosted? true} opts)
           (reset! options)
