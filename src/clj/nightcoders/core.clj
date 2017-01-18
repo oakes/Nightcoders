@@ -60,7 +60,13 @@
     (get-in request [:headers "host"])
     "/" project-id "/public/"))
 
-(defn user-routes [user-id path-parts]
+(defn get-code-url [request user-id project-id]
+  (str
+    "http://"
+    (get-in request [:headers "host"])
+    "/" user-id "/" project-id "/code/"))
+
+(defn user-routes [request user-id path-parts]
   (let [[project-id mode & leaves] path-parts]
     (when-let [[user-id project-id] (try
                                       [(Integer/valueOf user-id)
@@ -79,6 +85,7 @@
                          {:status 200
                           :headers {"Content-Type" "text/html"}
                           :body (io/input-stream (io/resource "public/refresh.html"))})))
+          "code" (redirect (get-code-url request user-id project-id) 301)
           nil)))))
 
 (defn localhost? [request]
@@ -213,7 +220,7 @@
                     :headers {"Content-Type" "text/html"}
                     :body (-> "public/loading.html" io/resource slurp)})
           "public" (if (localhost? request)
-                     (user-routes user-id (concat [project-id mode] leaves))
+                     (user-routes request user-id (concat [project-id mode] leaves))
                      (redirect (get-public-url request user-id project-id) 301))
           nil)))))
 
@@ -271,7 +278,7 @@
       (main-routes request path-parts)
       (case (count host-parts)
         2 (main-routes request path-parts)
-        3 (user-routes (first host-parts) path-parts)
+        3 (user-routes request (first host-parts) path-parts)
         nil))))
 
 (defn print-server [server]
