@@ -90,6 +90,7 @@
                          {:status 200
                           :headers {"Content-Type" "text/html"}
                           :body (io/input-stream (io/resource "public/refresh.html"))})))
+          "code" (redirect (get-code-url request user-id project-id) 301)
           nil)))))
 
 (defn localhost? [request]
