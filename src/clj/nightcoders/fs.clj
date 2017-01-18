@@ -3,8 +3,8 @@
             [clojure.string :as str]
             [clojure.edn :as edn]
             [leiningen.new.templates :as t]
-            [clj-jgit.porcelain :as jgit]
-            [nightcoders.db :as db]))
+            [nightcoders.db :as db])
+  (:import [org.eclipse.jgit.api InitCommand]))
 
 (def ^:const parent-dir "data")
 (def ^:const pref-file-name "prefs.edn")
@@ -119,7 +119,9 @@
           (case project-type
             :reagent (gen-project "reagent" '[[reagent "0.6.0"]] project-name main-ns path)
             :play-cljs (gen-project "play-cljs" '[[play-cljs "0.8.0"]] project-name main-ns path)))
-        (jgit/git-init f)
+        (-> (InitCommand.)
+            (.setDirectory (io/as-file f))
+            (.call))
         project-id))))
 
 (defn get-relative-path

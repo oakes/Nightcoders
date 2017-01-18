@@ -19,7 +19,7 @@
                   [org.clojure/java.jdbc "0.7.0-alpha1"]
                   [com.h2database/h2 "1.4.193"]
                   [leiningen "2.7.0" :exclusions [leiningen.search]]
-                  [clj-jgit "0.8.9"]])
+                  [org.eclipse.jgit/org.eclipse.jgit "4.6.0.201612231935-r"]])
 
 (require
   '[adzerk.boot-cljs :refer [cljs]]
