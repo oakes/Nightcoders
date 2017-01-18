@@ -90,7 +90,8 @@
         {:keys [in-pipe out]} pipes
         process (atom nil)
         prefs (fs/get-prefs user-id user-id project-id)
-        index-html (io/file f "target" "nightcoders" "index.html")]
+        index-html (io/file f "target" "nightcoders" "index.html")
+        index-old-html (io/file (.getParentFile index-html) "index-old.html")]
     (spit (io/file f "boot.properties")
       (slurp (io/resource "template.boot.properties")))
     (spit (io/file f "build.boot")
@@ -102,7 +103,7 @@
     (spit (io/file f "resources" "nightcoders" "main.cljs.edn")
       (create-main-cljs-edn prefs))
     (when (.exists index-html)
-      (.renameTo index-html (io/file (.getParentFile index-html) "index-old.html")))
+      (.renameTo index-html index-old-html))
     (pipe-into-console! in-pipe channel)
     (.start
       (Thread.
@@ -114,7 +115,11 @@
               (start-process! process (.getCanonicalPath f)
                 ["java" "-jar" (-> "boot.jar" io/file .getCanonicalPath) "--no-colors" "dev"])
               (catch Exception e (some-> (.getMessage e) println))
-              (finally (println "=== Finished ===")))))))
+              (finally
+                (println "=== Finished ===")
+                (when (and (not (.exists index-html))
+                           (.exists index-old-html))
+                  (.renameTo index-old-html index-html))))))))
     process))
 
 (defn start [user-id project-id channel]
