@@ -14,7 +14,9 @@
                         :signed-in? true
                         :user (read-string user)))))
 
-(auth/load (fn [_]))
+(auth/load (fn [auth2]
+             (when-not auth2
+               (swap! state assoc :blocked? true))))
 
 (defn signin-signout []
   [:div {:class "signin-signout"}
@@ -153,6 +155,8 @@
                   :text-align "center"}}
     [:p "Build web apps and games with ClojureScript, entirely in your browser."]
     [:p "Sign in with your Google account and start coding for free."]
+    (when (:blocked? @state)
+      [:p [:b [:i "It looks like something in your browser is blocking the Google sign on!"]]])
     [:img {:src "screenshot.png"
            :style {:width "95%"
                    :margin-bottom "10px"}}]]])

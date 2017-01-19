@@ -12,8 +12,8 @@
     "GET"))
 
 (auth/load (fn [auth2]
-             (let [user (-> auth2 .-currentUser .get)]
-               (if (.getBasicProfile user)
+             (let [user (some-> auth2 .-currentUser .get)]
+               (if (some-> user .getBasicProfile)
                  (auth/auth-user user get-page)
                  (get-page)))))
 
