@@ -7,6 +7,7 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.content-type :refer [wrap-content-type]]
+            [ring.middleware.gzip :refer [wrap-gzip]]
             [ring.util.response :refer [redirect]]
             [ring.util.request :refer [body-string]]
             [ring.util.mime-type :refer [ext-mime-type]]
@@ -302,7 +303,7 @@
    (when-not @web-server
      (->> (merge {:port 0 :hosted? true} opts)
           (reset! options)
-          (run-server (-> app wrap-session wrap-multipart-params wrap-content-type))
+          (run-server (-> app wrap-session wrap-multipart-params wrap-content-type wrap-gzip))
           (reset! web-server)
           print-server))))
 
