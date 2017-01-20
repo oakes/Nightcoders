@@ -9,7 +9,7 @@
            [com.hypirion.io ClosingPipe Pipe]))
 
 (def ^:const cljs-dep '[org.clojure/clojurescript "1.9.229"])
-(def ^:const max-open-projects 5)
+(def ^:const max-open-projects 2)
 
 (defonce state (atom {}))
 
@@ -114,7 +114,7 @@
             (try
               (println "Warming up...")
               (start-process! process (.getCanonicalPath f)
-                ["java" "-jar" (-> "boot.jar" io/file .getCanonicalPath) "--no-colors" "dev"])
+                ["java" "-Xmx2048m" "-jar" (-> "boot.jar" io/file .getCanonicalPath) "--no-colors" "dev"])
               (catch Exception e (some-> (.getMessage e) println))
               (finally
                 (println "=== Finished ===")
