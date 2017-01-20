@@ -13,7 +13,7 @@
                   [nightlight "1.5.1"]
                   ; clj deps
                   [org.clojure/clojure "1.8.0"]
-                  [ring "1.5.0"]
+                  [ring "1.5.1"]
                   [http-kit "2.2.0"]
                   [com.google.api-client/google-api-client "1.20.0"]
                   [org.clojure/java.jdbc "0.7.0-alpha1"]
