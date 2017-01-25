@@ -277,15 +277,17 @@
     (project-routes request path-parts)))
 
 (defn handler [request]
-  (let [^String host (get-in request [:headers "host"])
-        host-parts (str/split host #"\.")
-        path-parts (filter seq (str/split (:uri request) #"/"))]
-    (if (.startsWith host "localhost")
-      (main-routes request path-parts)
-      (case (count host-parts)
-        2 (main-routes request path-parts)
-        3 (user-routes request (first host-parts) path-parts)
-        nil))))
+  (if-let [^String host (get-in request [:headers "host"])]
+    (let [host-parts (str/split host #"\.")
+          path-parts (filter seq (str/split (:uri request) #"/"))]
+      (if (.startsWith host "localhost")
+        (main-routes request path-parts)
+        (case (count host-parts)
+          2 (main-routes request path-parts)
+          3 (user-routes request (first host-parts) path-parts)
+          nil)))
+    {:status 403
+     :body "Something is wrong with your request! Couldn't find host header."}))
 
 (defn print-server [server]
   (println
