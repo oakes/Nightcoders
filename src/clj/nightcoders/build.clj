@@ -84,7 +84,7 @@
   (pr-str
     {:require  [(symbol main-ns) 'nightlight.repl-server]
      :init-fns []
-     :compiler-options {:parallel-build true}}))
+     :compiler-options {:infer-externs true :parallel-build true}}))
 
 (defn start-boot-process! [user-id project-id channel pipes]
   (let [f (fs/get-project-dir user-id project-id)
