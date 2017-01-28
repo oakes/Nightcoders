@@ -29,5 +29,5 @@
     (nightlight :port 4000 :url "http://localhost:3000")))
 
 (deftask build []
-  (comp (cljs :optimizations :simple) (target)))
+  (comp (cljs :optimizations :advanced) (target)))
 
