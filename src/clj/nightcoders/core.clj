@@ -235,7 +235,7 @@
     "/" {:status 200
          :headers {"Content-Type" "text/html"}
          :body (-> "public/nightcoders.html" io/resource slurp)}
-    "/auth" (let [token (body-string request)]
+    "/auth" (when-let [token (body-string request)]
               (if-let [payload (some-> verifier (.verify token) .getPayload)]
                 (let [user-id (fs/create-user! (.getEmail payload))
                       projects (->> (fs/get-user-dir user-id)
