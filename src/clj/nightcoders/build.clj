@@ -114,7 +114,7 @@
             (try
               (println "Warming up...")
               (start-process! process (.getCanonicalPath f)
-                ["java" "-Xmx2048m" "-jar" (-> "boot.jar" io/file .getCanonicalPath) "--no-colors" "dev"])
+                ["java" "-jar" (-> "boot.jar" io/file .getCanonicalPath) "--no-colors" "dev"])
               (catch Exception e (some-> (.getMessage e) println))
               (finally
                 (println "=== Finished ===")
