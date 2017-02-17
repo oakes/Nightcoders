@@ -21,7 +21,7 @@
       (.then #(unauth-user cb))))
 
 (defn load [cb]
-  (if js/gapi.load
+  (if (and (exists? js/gapi) (exists? js/gapi.load))
     (js/gapi.load "auth2"
       (fn []
         (let [auth2 (js/gapi.auth2.init #js {"fetch_basic_profile" true})]
