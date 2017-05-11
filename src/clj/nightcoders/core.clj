@@ -302,6 +302,7 @@
        (start opts)))
   ([app opts]
    (db/create-tables)
+   (db/start-ui)
    (when-not @web-server
      (->> (merge {:port 0 :hosted? true} opts)
           (reset! options)
@@ -311,7 +312,6 @@
 
 (defn dev-start [opts]
   (when-not @web-server
-    (db/start-ui)
     (.mkdirs (io/file "target" "public"))
     (-> handler
         (wrap-file "target/public")
