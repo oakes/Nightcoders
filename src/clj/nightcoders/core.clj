@@ -10,7 +10,6 @@
             [ring.middleware.gzip :refer [wrap-gzip]]
             [ring.util.response :refer [redirect]]
             [ring.util.request :refer [body-string]]
-            [ring.util.mime-type :refer [ext-mime-type]]
             [org.httpkit.server :refer [run-server]]
             [nightcoders.db :as db]
             [nightcoders.fs :as fs]
@@ -137,14 +136,11 @@
     "read-file" (when-let [f (some->> request
                                       body-string
                                       (fs/secure-file (fs/get-source-dir user-id project-id)))]
-                  (let [mime-type (ext-mime-type (.getCanonicalPath f))]
-                    (when (and (.isFile f)
-                               (<= (.length f) max-file-size)
-                               (or (nil? mime-type)
-                                   (.startsWith mime-type "text")))
-                      {:status 200
-                       :headers {"Content-Type" "text/plain"}
-                       :body f})))
+                  (when (and (.isFile f)
+                             (<= (.length f) max-file-size))
+                    {:status 200
+                     :headers {"Content-Type" "text/plain"}
+                     :body f}))
     "write-file" (when (authorized? request user-id)
                    (let [{:keys [path content]} (-> request body-string edn/read-string)]
                      (when-let [f (fs/secure-file (fs/get-source-dir user-id project-id) path)]
