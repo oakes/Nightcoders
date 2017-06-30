@@ -5,9 +5,9 @@
                   [adzerk/boot-reload "0.4.12" :scope "test"]
                   [org.clojure/test.check "0.9.0" :scope "test"]
                   ; cljs deps
-                  [org.clojure/clojurescript "1.9.473" :scope "test"]
-                  [paren-soup "2.8.6" :scope "test"]
-                  [reagent "0.6.0" :exclusions [cljsjs/react cljsjs/react-dom] :scope "test"]
+                  [org.clojure/clojurescript "1.9.660" :scope "test"]
+                  [paren-soup "2.8.7" :scope "test"]
+                  [reagent "0.7.0" :exclusions [cljsjs/react cljsjs/react-dom] :scope "test"]
                   [cljs-react-material-ui "0.2.34" :scope "test"]
                   [cljsjs/google-platformjs-extern "1.0.0-0" :scope "test"]
                   [nightlight "1.6.5"]
@@ -18,7 +18,7 @@
                   [com.google.api-client/google-api-client "1.20.0"]
                   [org.clojure/java.jdbc "0.7.0-alpha1"]
                   [com.h2database/h2 "1.4.193"]
-                  [leiningen "2.7.0" :exclusions [leiningen.search]]
+                  [leiningen "2.7.1" :exclusions [leiningen.search]]
                   [org.eclipse.jgit/org.eclipse.jgit "4.6.0.201612231935-r"]
                   [bk/ring-gzip "0.2.1"]])
 
@@ -26,7 +26,7 @@
   '[adzerk.boot-cljs :refer [cljs]]
   '[adzerk.boot-reload :refer [reload]]
   '[nightcoders.core :refer [dev-start]]
-  '[clojure.spec.test :refer [instrument]])
+  '[clojure.spec.test.alpha :refer [instrument]])
 
 (task-options!
   pom {:project 'nightcoders
