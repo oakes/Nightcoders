@@ -5,8 +5,8 @@
                   [adzerk/boot-reload "0.4.12" :scope "test"]
                   [org.clojure/test.check "0.9.0" :scope "test"]
                   ; cljs deps
-                  [org.clojure/clojurescript "1.9.660" :scope "test"]
-                  [paren-soup "2.8.8" :scope "test"]
+                  [org.clojure/clojurescript "1.9.671" :scope "test"]
+                  [paren-soup "2.8.9" :scope "test"]
                   [reagent "0.7.0" :exclusions [cljsjs/react cljsjs/react-dom] :scope "test"]
                   [cljs-react-material-ui "0.2.34" :scope "test"]
                   [cljsjs/google-platformjs-extern "1.0.0-0" :scope "test"]
