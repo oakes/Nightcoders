@@ -3,7 +3,8 @@
             [cljs.reader :refer [read-string]]
             [cljs-react-material-ui.core :refer [get-mui-theme]]
             [cljs-react-material-ui.reagent :as ui]
-            [nightcoders.auth :as auth])
+            [nightcoders.auth :as auth]
+            [goog.object])
   (:import goog.net.XhrIo))
 
 (defonce state (r/atom {}))
@@ -163,7 +164,7 @@
 
 (defn app []
   [ui/mui-theme-provider
-   {:mui-theme (get-mui-theme (aget js/MaterialUIStyles "DarkRawTheme"))}
+   {:mui-theme (get-mui-theme (goog.object/get js/MaterialUIStyles "DarkRawTheme"))}
    [:div
     [signin-signout]
     [new-project-dialog]
