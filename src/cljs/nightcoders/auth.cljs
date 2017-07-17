@@ -1,4 +1,5 @@
 (ns nightcoders.auth
+  (:require [goog.object :as gobj])
   (:import goog.net.XhrIo))
 
 (defn auth-user [user cb]
@@ -10,7 +11,7 @@
     (.-id_token (.getAuthResponse user))))
 
 (defn set-sign-in [cb]
-  (aset js/window "signIn" #(auth-user % cb)))
+  (gobj/set js/window "signIn" #(auth-user % cb)))
 
 (defn unauth-user [cb]
   (.send XhrIo "/unauth" cb "POST"))
