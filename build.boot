@@ -6,11 +6,11 @@
                   [org.clojure/test.check "0.9.0" :scope "test"]
                   ; cljs deps
                   [org.clojure/clojurescript "1.9.854" :scope "test"]
-                  [paren-soup "2.8.12" :scope "test"]
+                  [paren-soup "2.8.13" :scope "test"]
                   [reagent "0.7.0" :exclusions [cljsjs/react cljsjs/react-dom] :scope "test"]
                   [cljs-react-material-ui "0.2.34" :scope "test"]
                   [cljsjs/google-platformjs-extern "1.0.0-0" :scope "test"]
-                  [nightlight "1.7.1"]
+                  [nightlight "1.7.2"]
                   ; clj deps
                   [org.clojure/clojure "1.8.0"]
                   [ring "1.5.1"]
