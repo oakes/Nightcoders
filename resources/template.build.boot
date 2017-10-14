@@ -1,9 +1,9 @@
 (set-env!
   :source-paths #{"src"}
   :resource-paths #{"src" "resources"}
-  :dependencies '[[adzerk/boot-cljs "1.7.228-2" :scope "test"]
-                  [adzerk/boot-reload "0.4.13" :scope "test"]
-                  [pandeiro/boot-http "0.7.3" :scope "test"
+  :dependencies '[[adzerk/boot-cljs "2.1.4" :scope "test"]
+                  [adzerk/boot-reload "0.5.2" :scope "test"]
+                  [pandeiro/boot-http "0.8.3" :scope "test"
                    :exclusions [org.clojure/clojure]]
                   [nightlight "1.9.1"]
                   %s])
@@ -19,7 +19,7 @@
     (watch)
     (reload :asset-path "nightcoders" :cljs-asset-path ".")
     (sandbox :file "java.policy")
-    (cljs :source-map true :optimizations :none)
+    (cljs :source-map true :optimizations :none :compiler-options {:asset-path "main.out"})
     (target)))
 
 (deftask run []

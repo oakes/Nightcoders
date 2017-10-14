@@ -1,3 +1,4 @@
 {:require  [nightcoders.loading]
  :init-fns []
- :compiler-options {:pseudo-names true}}
+ :compiler-options {:asset-path "loading.out"
+                    :pseudo-names true}}
