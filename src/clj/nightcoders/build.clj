@@ -86,6 +86,13 @@
      :init-fns []
      :compiler-options {:infer-externs true}}))
 
+(defn move-index-html [user-id project-id]
+  (let [f (fs/get-project-dir user-id project-id)
+        index-html (io/file f "target" "nightcoders" "index.html")
+        index-old-html (io/file (.getParentFile index-html) "index-old.html")]
+    (when (.exists index-html)
+      (.renameTo index-html index-old-html))))
+
 (defn start-boot-process! [user-id project-id channel pipes]
   (let [f (fs/get-project-dir user-id project-id)
         {:keys [in-pipe out]} pipes

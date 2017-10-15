@@ -201,6 +201,11 @@
                     {:status 200})
     "status" (when (authorized? request user-id)
                (build/status-request request user-id project-id))
+    "index.html" (do
+                   (when (authorized? request user-id)
+                     (build/move-index-html user-id project-id))
+                   {:status 200
+                    :body (io/input-stream (io/resource "nightlight-public/index.html"))})
     (if-let [res (io/resource (str "nightlight-public/" (str/join "/" leaves)))]
       {:status 200
        :body (io/input-stream res)}
