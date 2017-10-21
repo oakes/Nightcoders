@@ -206,11 +206,10 @@
                      (build/move-index-html user-id project-id))
                    {:status 200
                     :body (io/input-stream (io/resource "nightlight-public/index.html"))})
-    (if-let [res (io/resource (str "nightlight-public/" (str/join "/" leaves)))]
+    (when-let [res (or (io/resource (str "nightlight-public/" (str/join "/" leaves)))
+                       (io/resource (str "public/" (str/join "/" leaves))))]
       {:status 200
-       :body (io/input-stream res)}
-      {:status 200
-       :body (io/input-stream (io/resource (str "public/" (str/join "/" leaves))))})))
+       :body (io/input-stream res)})))
 
 (defn project-routes [request path-parts]
   (let [[user-id project-id mode & leaves] path-parts]
