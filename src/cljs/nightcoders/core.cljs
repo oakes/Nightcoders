@@ -173,6 +173,11 @@
     (if (:signed-in? @state)
       [templates]
       [intro])
+    [:div
+     [:center
+      [:p "You can support this this project via "
+       [:a {:href "https://www.patreon.com/sekao" :target "_blank"}
+        "my patreon"]]]]
     [:div {:class "card-group"}
      [:div {:class "small-card"}
       [:center [:h2 "Bring in libraries"]]
