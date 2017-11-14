@@ -41,6 +41,16 @@
   (jdbc/with-db-connection [db-conn db-spec]
     (insert-user db-conn email)))
 
+(def ^:const limit 300)
+
+(defn select-projects [db-conn page]
+  (jdbc/query db-conn [(str "SELECT * FROM projects LIMIT " limit
+                         " OFFSET " (* limit page))]))
+
+(defn select-projects! [page]
+  (jdbc/with-db-connection [db-conn db-spec]
+    (select-projects db-conn page)))
+
 (defn insert-project [db-conn user-id]
   (-> (jdbc/insert! db-conn :projects {:id nil :user_id user-id})
       first

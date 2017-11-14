@@ -13,13 +13,14 @@
                   [nightlight "1.9.3"]
                   ; clj deps
                   [org.clojure/clojure "1.8.0"]
-                  [ring "1.5.1"]
+                  [hiccup "1.0.5"]
+                  [ring "1.6.1"]
                   [http-kit "2.2.0"]
                   [javax.xml.bind/jaxb-api "2.3.0"] ; necessary for Java 9 compatibility
                   [com.google.api-client/google-api-client "1.20.0"]
                   [org.clojure/java.jdbc "0.7.0-alpha1"]
                   [com.h2database/h2 "1.4.193"]
-                  [leiningen "2.7.1" :exclusions [leiningen.search]]
+                  [leiningen "2.8.1" :exclusions [leiningen.search]]
                   [org.eclipse.jgit/org.eclipse.jgit "4.6.0.201612231935-r"]
                   [bk/ring-gzip "0.2.1"]])
 

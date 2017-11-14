@@ -13,7 +13,9 @@
             [org.httpkit.server :refer [run-server]]
             [nightcoders.db :as db]
             [nightcoders.fs :as fs]
-            [nightcoders.build :as build])
+            [nightcoders.build :as build]
+            [hiccup.core :as h]
+            [hiccup.util :refer [escape-html]])
   (:import [java.io File FilenameFilter]
            [com.google.api.client.googleapis.auth.oauth2 GoogleIdToken GoogleIdToken$Payload GoogleIdTokenVerifier$Builder]
            [com.google.api.client.json.jackson2 JacksonFactory]
@@ -230,6 +232,29 @@
                      (redirect (get-public-url request user-id project-id) 301))
           nil)))))
 
+(defn admin-page [page]
+  (let [projects (db/select-projects! page)]
+    (h/html
+      [:html
+       [:head
+        [:meta {:charset "UTF-8"}]
+        [:meta {:name "viewport" :content "user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"}]
+        [:title "Admin"]]
+       [:body
+        [:table
+         [:tr
+          [:th "User ID"]
+          [:th "Project ID"]
+          [:th "Files"]]
+         (for [project projects]
+           [:tr
+            [:td (:user_id project)]
+            [:td (:id project)]
+            [:td]])]
+        (when (seq projects)
+          [:a {:href (str "/admin/" (inc page))}
+           "Next"])]])))
+
 (defn main-routes [request path-parts]
   (case (:uri request)
     "/" {:status 200
@@ -274,7 +299,14 @@
                             (build/stop-project! user-id project-id)
                             (fs/delete-children-recursively! (fs/get-project-dir user-id project-id))
                             {:status 200})))
-    (project-routes request path-parts)))
+    (if (-> path-parts first (= "admin"))
+      (when (-> request :session :id (= 1))
+        (let [page (or (some-> path-parts second Integer/valueOf)
+                       0)]
+          {:status 200
+           :headers {"Content-Type" "text/html"}
+           :body (admin-page page)}))
+      (project-routes request path-parts))))
 
 (defn handler [request]
   (if-let [^String host (get-in request [:headers "host"])]
