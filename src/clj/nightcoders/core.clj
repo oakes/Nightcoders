@@ -259,7 +259,7 @@
                                 (not (.endsWith n ".html"))
                                 (not (.endsWith n ".css")))]
                  [:div
-                  [:a {:href (str "/" user_id "/" id "/public/"
+                  [:a {:href (str "http://" user_id ".nightcoders.net/" id "/public/"
                                (fs/get-relative-path src-dir f))}
                    n]])]]))]
         (when (seq projects)
