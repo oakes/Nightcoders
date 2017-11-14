@@ -256,6 +256,8 @@
                      :let [n (.getName f)]
                      :when (and (.isFile f)
                                 (not (.endsWith n ".cljs"))
+                                (not (.endsWith n ".clj"))
+                                (not (.endsWith n ".cljc"))
                                 (not (.endsWith n ".html"))
                                 (not (.endsWith n ".css")))]
                  [:div
