@@ -44,7 +44,7 @@
 (def ^:const limit 300)
 
 (defn select-projects [db-conn page]
-  (jdbc/query db-conn [(str "SELECT * FROM projects LIMIT " limit
+  (jdbc/query db-conn [(str "SELECT * FROM projects ORDER BY id DESC LIMIT " limit
                          " OFFSET " (* limit page))]))
 
 (defn select-projects! [page]

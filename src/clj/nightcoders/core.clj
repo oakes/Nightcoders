@@ -246,11 +246,22 @@
           [:th "User ID"]
           [:th "Project ID"]
           [:th "Files"]]
-         (for [project projects]
-           [:tr
-            [:td (:user_id project)]
-            [:td (:id project)]
-            [:td]])]
+         (for [{:keys [id user_id]} projects]
+           (let [src-dir (fs/get-source-dir user_id id)]
+             [:tr
+              [:td user_id]
+              [:td id]
+              [:td
+               (for [f (file-seq src-dir)
+                     :let [n (.getName f)]
+                     :when (and (.isFile f)
+                                (not (.endsWith n ".cljs"))
+                                (not (.endsWith n ".html"))
+                                (not (.endsWith n ".css")))]
+                 [:div
+                  [:a {:href (str "/" user_id "/" id "/public/"
+                               (fs/get-relative-path src-dir f))}
+                   n]])]]))]
         (when (seq projects)
           [:a {:href (str "/admin/" (inc page))}
            "Next"])]])))
