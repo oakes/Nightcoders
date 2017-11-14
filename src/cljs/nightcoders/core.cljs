@@ -79,9 +79,9 @@
          :on-change #(reset! project-name (.-value (.-target %)))}]])))
 
 (defn delete-project-dialog []
-  (when-let [{:keys [project-name project-id]} (:project @state)]
-    (let [email (r/atom nil)]
-      (fn []
+  (let [email (r/atom nil)]
+    (fn []
+      (when-let [{:keys [project-name project-id]} (:project @state)]
         [ui/dialog {:modal true
                     :open (= :delete-project (:dialog @state))
                     :actions
