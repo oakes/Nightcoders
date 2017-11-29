@@ -16,10 +16,12 @@
   (try
     (jdbc/db-do-commands db-spec
       (jdbc/create-table-ddl :users
-        [[:id :identity] [:email :varchar]]))
+        [[:id :identity] [:email :varchar]]
+        {:conditional? true}))
     (jdbc/db-do-commands db-spec
       (jdbc/create-table-ddl :projects
-        [[:id :identity] [:user_id :int]]))
+        [[:id :identity] [:user_id :int]]
+        {:conditional? true}))
     (catch Exception _)))
 
 (defn select-user [db-conn email]
