@@ -5,7 +5,7 @@
                   [adzerk/boot-reload "0.5.2" :scope "test"]
                   [pandeiro/boot-http "0.8.3" :scope "test"
                    :exclusions [org.clojure/clojure]]
-                  [nightlight "2.0.1"]
+                  [nightlight "2.0.2"]
                   %s])
 
 (require
