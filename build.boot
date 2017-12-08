@@ -12,7 +12,7 @@
                   [cljsjs/google-platformjs-extern "1.0.0-0" :scope "test"]
                   [nightlight "2.0.4"]
                   ; clj deps
-                  [org.clojure/clojure "1.8.0"]
+                  [org.clojure/clojure "1.9.0"]
                   [hiccup "1.0.5"]
                   [ring "1.6.1"]
                   [http-kit "2.2.0"]
