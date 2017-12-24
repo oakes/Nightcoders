@@ -1,19 +1,20 @@
 {:paths ["src/clj" "src/cljs" "resources"]
- :deps {org.clojure/clojure {:mvn/version "1.8.0"}
-        org.clojure/clojurescript {:mvn/version "1.9.908"
+ :deps {org.clojure/clojure {:mvn/version "1.9.0"}
+        org.clojure/clojurescript {:mvn/version "1.9.946"
                                    :scope "test"}
+        com.google.guava/guava {:mvn/version "21.0"
+                                :scope "test"}
         paren-soup {:mvn/version "2.9.3"
                     :scope "test"}
-        reagent {:mvn/version "0.7.0"
-                 :exclusions [cljsjs/react cljsjs/react-dom]
+        reagent {:mvn/version "0.8.0-alpha2"
                  :scope "test"}
-        cljs-react-material-ui {:mvn/version "0.2.34"
+        cljs-react-material-ui {:mvn/version "0.2.50"
                                 :scope "test"}
         cljsjs/google-platformjs-extern {:mvn/version "1.0.0-0"
                                          :scope "test"}
         nightlight {:mvn/version "2.0.4"}
         hiccup {:mvn/version "1.0.5"}
-        ring {:mvn/version "1.6.1"}
+        ring {:mvn/version "1.6.3"}
         http-kit {:mvn/version "2.2.0"}
         javax.xml.bind/jaxb-api {:mvn/version "2.3.0"} ; necessary for Java 9 compatibility
         com.google.api-client/google-api-client {:mvn/version "1.20.0"}
