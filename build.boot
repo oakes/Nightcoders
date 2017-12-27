@@ -2,7 +2,8 @@
   :dependencies '[[adzerk/boot-cljs "2.1.4" :scope "test"]
                   [adzerk/boot-reload "0.5.2" :scope "test"]
                   [org.clojure/test.check "0.9.0" :scope "test"]
-                  [org.clojars.oakes/boot-tools-deps "0.1.4" :scope "test"]])
+                  [javax.xml.bind/jaxb-api "2.3.0" :scope "test"]
+                  [org.clojars.oakes/boot-tools-deps "0.1.4.1" :scope "test"]])
 
 (require
   '[adzerk.boot-cljs :refer [cljs]]
@@ -21,7 +22,7 @@
 
 (deftask run []
   (comp
-    (deps)
+    (deps :aliases [:cljs])
     (watch)
     (reload :asset-path "public")
     (cljs :source-map true :optimizations :none)
@@ -35,7 +36,7 @@
 
 (deftask build []
   (comp
-    (deps)
+    (deps :aliases [:cljs])
     (cljs :optimizations :advanced)
     (aot) (pom) (uber) (jar) (sift) (target)))
 
