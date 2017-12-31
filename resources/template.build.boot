@@ -5,7 +5,7 @@
                   [adzerk/boot-cljs "2.1.4" :scope "test"]
                   [adzerk/boot-reload "0.5.2" :scope "test"]
                   [pandeiro/boot-http "0.8.3" :scope "test"]
-                  [nightlight "2.0.6"]
+                  [nightlight "2.1.0"]
                   %s])
 
 (require
