@@ -31,8 +31,8 @@
                   (doto (.setAudience (Collections/singletonList client-id)))
                   (.build)))
 
-(defonce web-server (atom nil))
-(defonce options (atom nil))
+(defonce *web-server (atom nil))
+(defonce *options (atom nil))
 
 (defn form->serializable [form]
   (if (instance? Exception form)
@@ -126,7 +126,7 @@
                         url (if (localhost? request)
                               "../public/"
                               (get-public-url request user-id project-id))
-                        options (assoc @options
+                        options (assoc @*options
                                   :read-only? (not (authorized? request user-id))
                                   :url url)]
                     (-> (fs/get-source-dir user-id project-id)
@@ -348,15 +348,15 @@
   ([app opts]
    (db/create-tables)
    (db/start-ui)
-   (when-not @web-server
+   (when-not @*web-server
      (->> (merge {:port 0 :hosted? true} opts)
-          (reset! options)
+          (reset! *options)
           (run-server (-> app wrap-session wrap-multipart-params wrap-content-type wrap-gzip))
-          (reset! web-server)
+          (reset! *web-server)
           print-server))))
 
 (defn dev-start [opts]
-  (when-not @web-server
+  (when-not @*web-server
     (.mkdirs (io/file "target" "public"))
     (-> handler
         (wrap-file "target/public")

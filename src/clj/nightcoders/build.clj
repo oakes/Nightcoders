@@ -11,7 +11,7 @@
 (def ^:const cljs-dep '[org.clojure/clojurescript "1.9.946"])
 (def ^:const max-open-projects 5)
 
-(defonce state (atom {}))
+(defonce *state (atom {}))
 
 (defn remove-returns [^String s]
   (str/escape s {\return ""}))
@@ -132,15 +132,15 @@
     process))
 
 (defn start [user-id project-id channel]
-  (if (-> (get @state user-id) count (< max-open-projects))
+  (if (-> (get @*state user-id) count (< max-open-projects))
     (->> (create-pipes)
          (start-boot-process! user-id project-id channel)
          (hash-map :channel channel :process)
-         (swap! state assoc-in [user-id project-id]))
+         (swap! *state assoc-in [user-id project-id]))
     (send! channel "Error: You have too many open projects.")))
 
 (defn restart [user-id project-id]
-  (when-let [{:keys [channel process]} (get-in @state [user-id project-id])]
+  (when-let [{:keys [channel process]} (get-in @*state [user-id project-id])]
     (stop-process! process)
     (start user-id project-id channel)))
 
@@ -148,22 +148,22 @@
   (with-channel request channel
     (on-close channel
       (fn [status]
-        (when-let [{:keys [process]} (get-in @state [user-id project-id])]
+        (when-let [{:keys [process]} (get-in @*state [user-id project-id])]
           (stop-process! process))
-        (swap! state update user-id dissoc project-id)))
+        (swap! *state update user-id dissoc project-id)))
     (on-receive channel
       (fn [text]
-        (when-not (get-in @state [user-id project-id])
+        (when-not (get-in @*state [user-id project-id])
           (start user-id project-id channel))))))
 
 (defn stop-project! [user-id project-id]
-  (when-let [{:keys [channel process]} (get-in @state [user-id project-id])]
+  (when-let [{:keys [channel process]} (get-in @*state [user-id project-id])]
     (close channel)
     (stop-process! process))
-  (swap! state update user-id dissoc project-id))
+  (swap! *state update user-id dissoc project-id))
 
 (defn stop-projects! [user-id]
-  (doseq [[project-id project] (get @state user-id)]
+  (doseq [[project-id project] (get @*state user-id)]
     (stop-project! user-id project-id))
-  (swap! state dissoc user-id))
+  (swap! *state dissoc user-id))
 

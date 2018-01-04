@@ -8,26 +8,26 @@
             [goog.object])
   (:import goog.net.XhrIo))
 
-(defonce state (r/atom {}))
+(defonce *state (r/atom {}))
 
 (auth/set-sign-in (fn [success? user]
                     (when success?
-                      (swap! state assoc
+                      (swap! *state assoc
                         :signed-in? true
                         :user (read-string user)))))
 
 (auth/load (fn [auth2]
              (when-not auth2
-               (swap! state assoc :blocked? true))))
+               (swap! *state assoc :blocked? true))))
 
 (defn signin-signout []
   [:div {:class "signin-signout"}
    [:div {:class "g-signin2"
           :data-onsuccess "signIn"
-          :style {:display (if (:signed-in? @state) "none" "block")}}]
+          :style {:display (if (:signed-in? @*state) "none" "block")}}]
    [ui/raised-button {:on-click (fn []
-                                  (auth/sign-out #(swap! state assoc :signed-in? false)))
-                      :style {:display (if (:signed-in? @state) "block" "none")}}
+                                  (auth/sign-out #(swap! *state assoc :signed-in? false)))
+                      :style {:display (if (:signed-in? @*state) "block" "none")}}
     "Sign Out"]])
 
 (defn new-project [project-name template]
@@ -58,18 +58,18 @@
   (let [project-name (r/atom nil)]
     (fn []
       [ui/dialog {:modal true
-                  :open (= :new-project (:dialog @state))
+                  :open (= :new-project (:dialog @*state))
                   :actions
                   [(r/as-element
                      [ui/flat-button {:on-click (fn []
-                                                  (swap! state dissoc :dialog :new-project-template)
+                                                  (swap! *state dissoc :dialog :new-project-template)
                                                   (reset! project-name nil))
                                       :style {:margin "10px"}}
                       "Cancel"])
                    (r/as-element
                      [ui/flat-button {:on-click (fn []
-                                                  (new-project @project-name (:new-project-template @state))
-                                                  (swap! state dissoc :dialog :new-project-template)
+                                                  (new-project @project-name (:new-project-template @*state))
+                                                  (swap! *state dissoc :dialog :new-project-template)
                                                   (reset! project-name nil))
                                       :disabled (not (seq @project-name))
                                       :style {:margin "10px"}}
@@ -82,22 +82,22 @@
 (defn delete-project-dialog []
   (let [email (r/atom nil)]
     (fn []
-      (when-let [{:keys [project-name project-id]} (:project @state)]
+      (when-let [{:keys [project-name project-id]} (:project @*state)]
         [ui/dialog {:modal true
-                    :open (= :delete-project (:dialog @state))
+                    :open (= :delete-project (:dialog @*state))
                     :actions
                     [(r/as-element
                        [ui/flat-button {:on-click (fn []
-                                                    (swap! state dissoc :dialog :project)
+                                                    (swap! *state dissoc :dialog :project)
                                                     (reset! email nil))
                                         :style {:margin "10px"}}
                         "Cancel"])
                      (r/as-element
                        [ui/flat-button {:on-click (fn []
                                                     (delete-project project-id)
-                                                    (swap! state dissoc :dialog :project)
+                                                    (swap! *state dissoc :dialog :project)
                                                     (reset! email nil))
-                                        :disabled (not= @email (-> @state :user :email))
+                                        :disabled (not= @email (-> @*state :user :email))
                                         :style {:margin "10px"}}
                         "Delete Project"])]}
          [ui/text-field
@@ -109,20 +109,20 @@
   (let [email (r/atom nil)]
     (fn []
       [ui/dialog {:modal true
-                  :open (= :delete-user (:dialog @state))
+                  :open (= :delete-user (:dialog @*state))
                   :actions
                   [(r/as-element
                      [ui/flat-button {:on-click (fn []
-                                                  (swap! state dissoc :dialog)
+                                                  (swap! *state dissoc :dialog)
                                                   (reset! email nil))
                                       :style {:margin "10px"}}
                       "Cancel"])
                    (r/as-element
                      [ui/flat-button {:on-click (fn []
                                                   (delete-user)
-                                                  (swap! state dissoc :dialog)
+                                                  (swap! *state dissoc :dialog)
                                                   (reset! email nil))
-                                      :disabled (not= @email (-> @state :user :email))
+                                      :disabled (not= @email (-> @*state :user :email))
                                       :style {:margin "10px"}}
                       "Delete Account"])]}
          [ui/text-field
@@ -136,19 +136,19 @@
     [:center
      [:h3 "Create a new project:"]
      [ui/raised-button {:class "btn"
-                        :on-click #(swap! state assoc :dialog :new-project :new-project-template :reagent)}
+                        :on-click #(swap! *state assoc :dialog :new-project :new-project-template :reagent)}
       "Web App"]
      [ui/raised-button {:class "btn"
-                        :on-click #(swap! state assoc :dialog :new-project :new-project-template :play-cljs)}
+                        :on-click #(swap! *state assoc :dialog :new-project :new-project-template :play-cljs)}
       "Game"]
-     (when (seq (-> @state :user :projects))
+     (when (seq (-> @*state :user :projects))
        [:span
         [:h3 "Open an existing project:"]
-        (for [{:keys [url project-name project-id] :as project} (-> @state :user :projects)]
+        (for [{:keys [url project-name project-id] :as project} (-> @*state :user :projects)]
           [ui/chip {:key project-id
                     :style {:margin "10px"}
                     :on-click #(set! (.-location js/window) url)
-                    :on-request-delete #(swap! state assoc :dialog :delete-project :project project)}
+                    :on-request-delete #(swap! *state assoc :dialog :delete-project :project project)}
            [:div {:style {:min-width "100px"}} project-name]])])]]])
 
 (defn intro []
@@ -157,7 +157,7 @@
                   :text-align "center"}}
     [:p "Build web apps and games with ClojureScript, entirely in your browser."]
     [:p "Sign in with your Google account and start coding for free."]
-    (when (:blocked? @state)
+    (when (:blocked? @*state)
       [:p [:b [:i "It looks like something in your browser is blocking the Google sign on!"]]])
     [:img {:src "screenshot.png"
            :style {:width "95%"
@@ -171,7 +171,7 @@
     [new-project-dialog]
     [delete-project-dialog]
     [delete-user-dialog]
-    (if (:signed-in? @state)
+    (if (:signed-in? @*state)
       [templates]
       [intro])
     [:div {:class "card-group"}
@@ -206,8 +206,8 @@
              :class "small-img"}]]]
     [:div
      [:center
-      (when (:signed-in? @state)
-        [:p [:a {:href "#" :on-click #(swap! state assoc :dialog :delete-user)}
+      (when (:signed-in? @*state)
+        [:p [:a {:href "#" :on-click #(swap! *state assoc :dialog :delete-user)}
              "Delete your entire account"]])
       [:p]
       [:p "Made by "
