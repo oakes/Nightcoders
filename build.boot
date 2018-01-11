@@ -1,11 +1,12 @@
 (set-env!
   :dependencies '[[adzerk/boot-cljs "2.1.4" :scope "test"]
                   [adzerk/boot-reload "0.5.2" :scope "test"]
-                  [org.clojure/test.check "0.9.0" :scope "test"]
                   [javax.xml.bind/jaxb-api "2.3.0" :scope "test"]
-                  [seancorfield/boot-tools-deps "0.1.4" :scope "test"]])
+                  [seancorfield/boot-tools-deps "0.1.4" :scope "test"]
+                  [orchestra "2017.11.12-1"]])
 
 (require
+  '[orchestra.spec.test :refer [instrument]]
   '[clojure.edn :as edn]
   '[adzerk.boot-cljs :refer [cljs]]
   '[adzerk.boot-reload :refer [reload]]
@@ -40,10 +41,8 @@
     (reload :asset-path "public")
     (cljs :source-map true :optimizations :none)
     (with-pass-thru _
-      (require
-        '[clojure.spec.test.alpha :refer [instrument]]
-        '[nightcoders.core :refer [dev-start]])
-      ((resolve 'instrument))
+      (require '[nightcoders.core :refer [dev-start]])
+      (instrument)
       ((resolve 'dev-start) {:port 3000}))
     (target)))
 
