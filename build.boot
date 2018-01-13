@@ -1,9 +1,9 @@
 (set-env!
   :dependencies '[[adzerk/boot-cljs "2.1.4" :scope "test"]
                   [adzerk/boot-reload "0.5.2" :scope "test"]
-                  [javax.xml.bind/jaxb-api "2.3.0" :scope "test"]
                   [seancorfield/boot-tools-deps "0.1.4" :scope "test"]
-                  [orchestra "2017.11.12-1"]])
+                  [javax.xml.bind/jaxb-api "2.3.0" :scope "test"] ; necessary for Java 9 compatibility
+                  [orchestra "2017.11.12-1" :scope "test"]])
 
 (require
   '[orchestra.spec.test :refer [instrument]]
