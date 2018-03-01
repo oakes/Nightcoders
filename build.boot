@@ -53,9 +53,16 @@
       ((resolve 'dev-start) {:port 3000}))
     (target)))
 
+(def jar-exclusions
+  ;; the standard exclusions don't work on windows,
+  ;; because we need to use backslashes
+  (conj boot.pod/standard-jar-exclusions
+    #"(?i)^META-INF\\[^\\]*\.(MF|SF|RSA|DSA)$"
+    #"(?i)^META-INF\\INDEX.LIST$"))
+
 (deftask build []
   (set-env! :dependencies #(into (set %) (:dependencies (read-deps-edn [:cljs]))))
   (comp
     (cljs :optimizations :advanced)
-    (aot) (pom) (uber) (jar) (sift) (target)))
+    (aot) (pom) (uber :exclude jar-exclusions) (jar) (sift) (target)))
 
