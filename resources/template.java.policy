@@ -12,6 +12,7 @@ grant {
     permission java.io.FilePermission "{{project}}/-", "read";
     permission java.io.FilePermission "{{project}}/target", "read,write";
     permission java.io.FilePermission "{{project}}/target/-", "read,write,delete";
+    permission java.io.FilePermission "/usr/lib/jvm/-", "read";
     
     permission java.io.FilePermission "/Library/-", "read";
     permission java.io.FilePermission "/System/Library/-", "read";
