@@ -99,14 +99,17 @@
         prefs {:project-name project-name
                :main-ns main-ns
                :deps deps
-               :selection "*CONTROL-PANEL*"}]
-    (t/->files data
-      ["README.md" (io/input-stream (io/resource "template.README.md"))]
-      ["src/nightcoders/{{path}}.cljs" (render "core.cljs" data)]
-      ["src/nightcoders/index.html" (render "index.html" data)]
-      ["src/nightcoders/style.css" (render "style.css" data)]
-      ["resources/nightcoders/main.cljs.edn" (render "main.cljs.edn.txt" data)]
-      [pref-file-name (pr-str prefs)])))
+               :selection "*CONTROL-PANEL*"}
+        paths [["README.md" (io/input-stream (io/resource "template.README.md"))]
+               ["src/nightcoders/{{path}}.cljs" (render "core.cljs" data)]
+               ["src/nightcoders/index.html" (render "index.html" data)]
+               (when (#{"reagent" "play-cljs"} template-name)
+                 ["src/nightcoders/style.css" (render "style.css" data)])
+               (when (#{"edna"} template-name)
+                 ["src/nightcoders/{{path}}.clj" (render "core.clj" data)])
+               ["resources/nightcoders/main.cljs.edn" (render "main.cljs.edn.txt" data)]
+               [pref-file-name (pr-str prefs)]]]
+    (apply t/->files data (remove nil? paths))))
 
 (defn create-project! [user-id project-type project-name]
   (let [sanitized-name (str/replace project-name #"[\./]" "")
@@ -118,7 +121,8 @@
         (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
           (case project-type
             :reagent (gen-project "reagent" '[[reagent "0.7.0"]] project-name main-ns path)
-            :play-cljs (gen-project "play-cljs" '[[play-cljs "1.2.0"]] project-name main-ns path)))
+            :play-cljs (gen-project "play-cljs" '[[play-cljs "1.2.0"]] project-name main-ns path)
+            :edna (gen-project "edna" '[[edna "1.0.0"]] project-name main-ns path)))
         (-> (InitCommand.)
             (.setDirectory (io/as-file f))
             (.call))

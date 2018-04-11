@@ -141,6 +141,9 @@
      [ui/raised-button {:class "btn"
                         :on-click #(swap! *state assoc :dialog :new-project :new-project-template :play-cljs)}
       "Game"]
+     [ui/raised-button {:class "btn"
+                        :on-click #(swap! *state assoc :dialog :new-project :new-project-template :edna)}
+      "Music"]
      (when (seq (-> @*state :user :projects))
        [:span
         [:h3 "Open an existing project:"]
