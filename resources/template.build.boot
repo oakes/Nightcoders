@@ -5,6 +5,7 @@
                   [adzerk/boot-cljs "2.1.4" :scope "test"]
                   [adzerk/boot-reload "0.5.2" :scope "test"]
                   [pandeiro/boot-http "0.8.3" :scope "test"]
+                  [javax.xml.bind/jaxb-api "2.3.0"] ; necessary for Java 9 compatibility
                   [nightlight "RELEASE"]
                   %s])
 
