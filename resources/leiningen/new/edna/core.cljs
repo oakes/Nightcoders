@@ -3,5 +3,6 @@
 
 (defonce audio (js/document.createElement "audio"))
 (set! (.-src audio) (build-for-cljs))
+(set! (.-controls audio) true)
 (.play audio)
 
