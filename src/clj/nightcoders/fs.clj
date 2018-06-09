@@ -122,7 +122,7 @@
           (case project-type
             :reagent (gen-project "reagent" '[[reagent "0.7.0"]] project-name main-ns path)
             :play-cljs (gen-project "play-cljs" '[[play-cljs "1.2.0"]] project-name main-ns path)
-            :edna (gen-project "edna" '[[edna "1.1.0"]] project-name main-ns path)))
+            :edna (gen-project "edna" '[[edna "1.2.0"]] project-name main-ns path)))
         (-> (InitCommand.)
             (.setDirectory (io/as-file f))
             (.call))
