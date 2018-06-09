@@ -195,7 +195,8 @@
                     (when (authorized? request user-id)
                       (let [pref-file (fs/get-pref-file user-id project-id)
                             old-prefs (edn/read-string (slurp pref-file))
-                            new-prefs (select-keys prefs [:selection :expansions :deps :project-name :main-ns])]
+                            new-prefs (select-keys prefs [:selection :expansions :deps
+                                                          :project-name :main-ns :left-sidebar-width])]
                         (fs/update-prefs pref-file new-prefs)
                         (when (not= (select-keys old-prefs [:deps :main-ns])
                                     (select-keys new-prefs [:deps :main-ns]))
