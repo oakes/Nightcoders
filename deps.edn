@@ -12,6 +12,6 @@
         bk/ring-gzip {:mvn/version "0.2.1"}}
  :aliases {:cljs {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.238" :scope "test"}
                                com.google.guava/guava {:mvn/version "21.0" :scope "test"}
-                               reagent {:mvn/version "0.8.0-alpha2" :scope "test"}
+                               reagent {:mvn/version "0.8.1" :scope "test"}
                                cljs-react-material-ui {:mvn/version "0.2.50" :scope "test"}
                                cljsjs/google-platformjs-extern {:mvn/version "1.0.0-0" :scope "test"}}}}}

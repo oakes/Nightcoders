@@ -120,7 +120,7 @@
             f (io/file parent-dir (str user-id) (str project-id))]
         (binding [leiningen.new.templates/*dir* (.getCanonicalPath f)]
           (case project-type
-            :reagent (gen-project "reagent" '[[reagent "0.7.0"]] project-name main-ns path)
+            :reagent (gen-project "reagent" '[[reagent "0.8.1"]] project-name main-ns path)
             :play-cljs (gen-project "play-cljs" '[[play-cljs "1.2.0"]] project-name main-ns path)
             :edna (gen-project "edna" '[[edna "1.2.0"]] project-name main-ns path)))
         (-> (InitCommand.)
