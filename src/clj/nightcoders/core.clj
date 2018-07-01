@@ -8,6 +8,7 @@
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.gzip :refer [wrap-gzip]]
+            [ring.middleware.reload :refer [wrap-reload]]
             [ring.util.response :refer [redirect]]
             [ring.util.request :refer [body-string]]
             [org.httpkit.server :refer [run-server]]
@@ -358,7 +359,8 @@
 (defn dev-start [opts]
   (when-not @*web-server
     (.mkdirs (io/file "target" "public"))
-    (-> handler
+    (-> #'handler
+        (wrap-reload)
         (wrap-file "target/public")
         (start opts))))
 

@@ -29,7 +29,8 @@
 (require
   '[orchestra.spec.test :refer [instrument]]
   '[adzerk.boot-cljs :refer [cljs]]
-  '[adzerk.boot-reload :refer [reload]])
+  '[adzerk.boot-reload :refer [reload]]
+  '[nightlight.boot :refer [nightlight]])
 
 (task-options!
   pom {:project 'nightcoders
@@ -44,6 +45,7 @@
 (deftask run []
   (set-env! :dependencies #(into (set %) (:dependencies (read-deps-edn [:cljs]))))
   (comp
+    (nightlight :port 4000)
     (watch)
     (reload :asset-path "public")
     (cljs :source-map true :optimizations :none)
