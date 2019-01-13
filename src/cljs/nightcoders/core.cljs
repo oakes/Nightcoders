@@ -5,6 +5,7 @@
             [cljs-react-material-ui.core :refer [get-mui-theme]]
             [cljs-react-material-ui.reagent :as ui]
             [nightcoders.auth :as auth]
+            [nightcoders.completions :as completions]
             [goog.object])
   (:import goog.net.XhrIo))
 
@@ -219,4 +220,3 @@
        [:a {:href "https://www.reddit.com/r/Nightcode/" :target "_blank"} "/r/Nightcode"]]]]]])
 
 (r/render-component [app] (.querySelector js/document "#app"))
-

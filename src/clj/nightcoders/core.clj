@@ -2,25 +2,27 @@
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
-            [ring.middleware.resource :refer [wrap-resource]]
-            [ring.middleware.file :refer [wrap-file]]
-            [ring.middleware.session :refer [wrap-session]]
-            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
-            [ring.middleware.content-type :refer [wrap-content-type]]
-            [ring.middleware.gzip :refer [wrap-gzip]]
-            [ring.middleware.reload :refer [wrap-reload]]
-            [ring.util.response :refer [redirect]]
-            [ring.util.request :refer [body-string]]
-            [org.httpkit.server :refer [run-server]]
+            [compliment.core :as com]
+            [dynadoc.watch :as dw]
+            [hiccup.core :as h]
+            [hiccup.util :refer [escape-html]]
+            [nightcoders.build :as build]
             [nightcoders.db :as db]
             [nightcoders.fs :as fs]
-            [nightcoders.build :as build]
-            [hiccup.core :as h]
-            [hiccup.util :refer [escape-html]])
-  (:import [java.io File FilenameFilter]
-           [com.google.api.client.googleapis.auth.oauth2 GoogleIdToken GoogleIdToken$Payload GoogleIdTokenVerifier$Builder]
-           [com.google.api.client.json.jackson2 JacksonFactory]
+            [org.httpkit.server :refer [run-server]]
+            [ring.middleware.content-type :refer [wrap-content-type]]
+            [ring.middleware.file :refer [wrap-file]]
+            [ring.middleware.gzip :refer [wrap-gzip]]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
+            [ring.middleware.reload :refer [wrap-reload]]
+            [ring.middleware.resource :refer [wrap-resource]]
+            [ring.middleware.session :refer [wrap-session]]
+            [ring.util.request :refer [body-string]]
+            [ring.util.response :refer [redirect]])
+  (:import [com.google.api.client.googleapis.auth.oauth2 GoogleIdToken GoogleIdToken$Payload GoogleIdTokenVerifier$Builder]
            [com.google.api.client.http.javanet NetHttpTransport]
+           [com.google.api.client.json.jackson2 JacksonFactory]
+           [java.io File FilenameFilter]
            [java.util Collections]
            [java.util.zip ZipEntry ZipOutputStream])
   (:gen-class))
@@ -120,7 +122,38 @@
                     :body zip-file})
     "completions" {:status 200
                    :headers {"Content-Type" "text/plain"}
-                   :body "[]"}
+                   :body (let [{:keys [ext ns context-before context-after prefix text]}
+                               (->> request body-string edn/read-string)]
+                           (case ext
+                             ("clj" "cljc")
+                             (try
+                               (->> {:ns ns
+                                     :context (read-string (str context-before "__prefix__" context-after))}
+                                    (com/completions prefix)
+                                    (map (fn [{:keys [candidate]}]
+                                           {:primary-text candidate
+                                            :value candidate}))
+                                    (filter #(not= text (:primary-text %)))
+                                    (take 50)
+                                    vec
+                                    pr-str)
+                               (catch Exception _ "[]"))
+                             "cljs"
+                             (->> (concat
+                                   (vals (get @dw/*cljs-info 'cljs.core))
+                                   (vals (get @dw/*cljs-info ns)))
+                                  (filter #(-> % :sym str
+                                               (str/starts-with? prefix)))
+                                  (map (fn [{:keys [sym]}]
+                                         (let [s (str sym)]
+                                           {:primary-text s
+                                            :value s})))
+                                  (filter #(not= text (:primary-text %)))
+                                  set
+                                  (sort-by :sym)
+                                  (take 50)
+                                  vec
+                                  pr-str)))}
     "tree" {:status 200
             :headers {"Content-Type" "text/plain"}
             :body (let [prefs (get-prefs request user-id project-id)
@@ -366,4 +399,3 @@
 
 (defn -main []
   (start {:port 3000}))
-
