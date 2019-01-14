@@ -9,6 +9,7 @@
             [nightcoders.build :as build]
             [nightcoders.db :as db]
             [nightcoders.fs :as fs]
+            [nightlight.watch :as watch]
             [org.httpkit.server :refer [run-server]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.file :refer [wrap-file]]
@@ -382,6 +383,7 @@
   ([app opts]
    (db/create-tables)
    (db/start-ui)
+   (watch/init-watcher!)
    (when-not @*web-server
      (->> (merge {:port 0 :hosted? true} opts)
           (reset! *options)

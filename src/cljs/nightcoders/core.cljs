@@ -5,7 +5,6 @@
             [cljs-react-material-ui.core :refer [get-mui-theme]]
             [cljs-react-material-ui.reagent :as ui]
             [nightcoders.auth :as auth]
-            [nightcoders.completions :as completions]
             [goog.object])
   (:import goog.net.XhrIo))
 
