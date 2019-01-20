@@ -8,7 +8,7 @@
            [java.io PipedWriter PipedReader PrintWriter]
            [com.hypirion.io ClosingPipe Pipe]))
 
-(def ^:const cljs-dep '[org.clojure/clojurescript "1.10.312"])
+(def ^:const cljs-dep '[org.clojure/clojurescript "1.10.439"])
 (def ^:const max-open-projects 5)
 
 (defonce *state (atom {}))

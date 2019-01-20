@@ -1,9 +1,9 @@
 (set-env!
   :source-paths #{"src"}
   :resource-paths #{"src" "resources"}
-  :dependencies '[[org.clojure/clojure "1.9.0" :scope "provided"]
-                  [adzerk/boot-cljs "2.1.4" :scope "test"]
-                  [adzerk/boot-reload "0.5.2" :scope "test"]
+  :dependencies '[[org.clojure/clojure "1.10.0" :scope "provided"]
+                  [adzerk/boot-cljs "2.1.5" :scope "test"]
+                  [adzerk/boot-reload "0.6.0" :scope "test"]
                   [pandeiro/boot-http "0.8.3" :scope "test"]
                   [javax.xml.bind/jaxb-api "2.3.0"] ; necessary for Java 9 compatibility
                   [nightlight "RELEASE"]
