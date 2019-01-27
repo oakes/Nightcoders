@@ -145,10 +145,12 @@
                                    (vals (get @dw/*cljs-info ns)))
                                   (filter #(-> % :sym str
                                                (str/starts-with? prefix)))
-                                  (map (fn [{:keys [sym]}]
+                                  (map (fn [{{:keys [arglists doc]} :meta sym :sym}]
                                          (let [s (str sym)]
                                            {:primary-text s
-                                            :value s})))
+                                            :value s
+                                            :arglists arglists
+                                            :doc doc})))
                                   (filter #(not= text (:primary-text %)))
                                   set
                                   (sort-by :sym)

@@ -1,6 +1,6 @@
 {:paths ["src/clj" "src/cljs" "resources"]
  :deps {org.clojure/clojure {:mvn/version "1.10.0"}
-        nightlight {:mvn/version "2.4.0"}
+        clojurebridge-nightlight {:mvn/version "2.4.4"}
         hiccup {:mvn/version "1.0.5"}
         ring {:mvn/version "1.7.1"}
         http-kit {:mvn/version "2.3.0"}
