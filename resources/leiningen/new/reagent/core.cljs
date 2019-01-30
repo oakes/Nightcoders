@@ -1,14 +1,40 @@
 (ns {{namespace}}
   (:require [reagent.core :as r]))
 
-(def clicks (r/atom 0))
+(defonce timer
+  (r/atom (js/Date.)))
 
-(defn content []
+(defonce time-color
+  (r/atom "red"))
+
+(defonce time-updater
+  (js/setInterval
+   #(reset! timer (js/Date.))
+   1000))
+
+(defn greeting [message]
+  [:h1 message])
+
+(defn clock []
+  (let [time-str (-> @timer
+                     .toTimeString
+                     (clojure.string/split " ")
+                     first)]
+    [:div.example-clock
+     {:style {:color @time-color}}
+     time-str]))
+
+(defn color-input []
+  [:div.color-input
+   "Time color: "
+   [:input {:type "text"
+            :value @time-color
+            :on-change #(reset! time-color (-> % .-target .-value))}]])
+
+(defn simple-example []
   [:div
-   [:p "You clicked " @clicks " times"]
-   [:button {:on-click (fn []
-                         (swap! clicks inc))}
-    "Click me"]])
+   [greeting "Hello world, it is now"]
+   [clock]
+   [color-input]])
 
-(r/render-component [content] (.querySelector js/document "#content"))
-
+(r/render-component [simple-example] (.querySelector js/document "#content"))
