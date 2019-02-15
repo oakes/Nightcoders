@@ -52,7 +52,7 @@
     (with-pass-thru _
       (require '[nightcoders.core :refer [dev-start]])
       (instrument)
-      ((resolve 'dev-start) {:port 3000}))
+      ((resolve 'dev-start) {:port 3001}))
     (target)))
 
 (def jar-exclusions

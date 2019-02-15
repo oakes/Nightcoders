@@ -25,9 +25,9 @@
 
 (deftask run []
   (comp
-    (serve :dir "target/nightcoders" :port 3000)
+    (serve :dir "target/nightcoders" :port 3001)
     (dev)
-    (nightlight :port 4000 :url "http://localhost:3000")))
+    (nightlight :port 4000 :url "http://localhost:3001")))
 
 (deftask build []
   (comp (cljs :optimizations :advanced) (target)))
