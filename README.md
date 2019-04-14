@@ -14,7 +14,7 @@ If you want to use your own Google Sign In client id (which you should...), find
 * `resources/public/loading.html`
 * `src/clj/nightcoders/core.clj`
 
-Your server must proxy web socket connections for the code reloading to work properly. For example, nginx has [documentation](https://www.nginx.com/blog/websocket-nginx/) on how to do this.
+Your server must proxy web socket connections for the code reloading to work properly. If you are using nginx, they have [documentation](https://www.nginx.com/blog/websocket-nginx/) on how to do this. Make sure `proxy_send_timeout` and `proxy_read_timeout` are set to a reasonable amount. [See this file](default) for an example of what you might want in your `/etc/nginx/sites-available/default` file.
 
 If you are experiencing permissions errors in your control panel, it may be because the sandboxing system isn't working properly. You can disable it by commenting out [this line](https://github.com/oakes/Nightcoders.net/blob/dc2bdf3ab8cd7a93d4f53bc12788e480f1228aef/resources/template.build.boot#L22).
 
