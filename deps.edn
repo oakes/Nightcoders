@@ -10,7 +10,7 @@
         leiningen {:mvn/version "2.8.1" :exclusions [leiningen.search]}
         org.eclipse.jgit/org.eclipse.jgit {:mvn/version "4.6.0.201612231935-r"}
         bk/ring-gzip {:mvn/version "0.2.1"}}
- :aliases {:cljs {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.520" :scope "test"}
+ :aliases {:cljs {:extra-deps {org.clojure/clojurescript {:mvn/version "1.10.597" :scope "test"}
                                com.google.guava/guava {:mvn/version "21.0" :scope "test"}
                                reagent {:mvn/version "0.8.1" :scope "test"}
                                cljs-react-material-ui {:mvn/version "0.2.50" :scope "test"}
