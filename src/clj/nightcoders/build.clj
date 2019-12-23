@@ -64,16 +64,34 @@
       (.waitFor @process)
       (reset! process nil))))
 
-(defn create-build-boot [{:keys [deps]}]
+(defn create-deps-edn [{:keys [deps]}]
   (let [deps (if (-> (map first deps)
                      set
                      (contains? 'org.clojure/clojurescript))
                deps
                (cons cljs-dep deps))]
-    (-> (io/resource "template.build.boot")
-        slurp
-        (format (str/join "\n                  "
-                  (map pr-str deps))))))
+    (with-out-str
+      (binding [*print-namespace-maps* false]
+        (clojure.pprint/pprint
+          {:paths ["src" "resources"]
+           :deps (reduce
+                   (fn [m [artifact version]]
+                     (assoc m artifact {:mvn/version version}))
+                   {}
+                   deps)
+           :aliases {:dev {:extra-deps {'com.bhauman/figwheel-main {:mvn/version "0.2.3"}
+                                        'nightlight {:mvn/version "RELEASE"}}
+                           :main-opts ["dev.clj"]}
+                     :prod {:main-opts ["prod.clj"]}}})))))
+
+(defn create-dev-cljs-edn [{:keys [main-ns]}]
+  (with-out-str
+    (clojure.pprint/pprint
+      {:main          (symbol main-ns)
+       :optimizations :none
+       :output-to     "resources/nightcoders/main.js"
+       :output-dir    "resources/nightcoders/main.out"
+       :asset-path    "/main.out"})))
 
 (defn create-java-policy [m]
   (-> (io/resource "template.java.policy")
@@ -81,10 +99,11 @@
       (stencil/render-string m)))
 
 (defn create-main-cljs-edn [{:keys [main-ns]}]
-  (pr-str
-    {:require  [(symbol main-ns) 'nightlight.repl-server]
-     :init-fns []
-     :compiler-options {:infer-externs true}}))
+  (with-out-str
+    (clojure.pprint/pprint
+      {:require  [(symbol main-ns) 'nightlight.repl-server]
+       :init-fns []
+       :compiler-options {:infer-externs true}})))
 
 (defn move-index-html [user-id project-id]
   (let [f (fs/get-project-dir user-id project-id)
@@ -103,7 +122,16 @@
     (spit (io/file f "boot.properties")
       (slurp (io/resource "template.boot.properties")))
     (spit (io/file f "build.boot")
-      (create-build-boot prefs))
+      (slurp (io/resource "template.build.boot")))
+    (spit (io/file f "deps.edn") (create-deps-edn prefs))
+    (spit (io/file f "dev.cljs.edn") (create-dev-cljs-edn prefs))
+    (spit (io/file f "figwheel-main.edn")
+      (slurp (io/resource "template.figwheel-main.edn")))
+    (spit (io/file f "dev.clj")
+      (slurp (io/resource "template.dev.clj")))
+    (spit (io/file f "prod.clj")
+      (format (slurp (io/resource "template.prod.clj"))
+              (:main-ns prefs)))
     (when-not (= user-id 1)
       (spit (io/file f "java.policy")
         (create-java-policy {:home (System/getProperty "user.home")

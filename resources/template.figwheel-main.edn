@@ -1,0 +1,15 @@
+{:open-url "http://localhost:9500"
+ :ring-stack-options
+ {:params {:urlencoded true, :multipart true, :nested true, :keywordize true},
+  :cookies true,
+  :session {:flash true, :cookie-attrs {:http-only true, :same-site :strict}},
+  :static {:resources "nightcoders"},
+  :responses {:content-types true, :default-charset "utf-8"},
+  :figwheel.server.ring/dev {:figwheel.server.ring/fix-index-mime-type true,
+                             :figwheel.server.ring/resource-root-index true,
+                             :figwheel.server.ring/wrap-no-cache true,
+                             :figwheel.server.ring/cljsjs-resources false,
+                             :ring.middleware.not-modified/wrap-not-modified true,
+                             :co.deps.ring-etag-middleware/wrap-file-etag true,
+                             :ring.middleware.cors/wrap-cors true,
+                             :ring.middleware.stacktrace/wrap-stacktrace true}}}

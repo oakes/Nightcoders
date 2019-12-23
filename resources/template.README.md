@@ -1,7 +1,8 @@
 ## Instructions
 
-1. Install the JDK
-2. Install Boot: http://boot-clj.com/
-3. In your terminal, go to this directory and enter `boot run`
-4. To edit the app in Nightlight, go to http://localhost:4000
-5. To see the app, go to http://localhost:3000
+* Install the JDK
+* Install [the Clojure CLI tool](https://clojure.org/guides/getting_started#_clojure_installer_and_cli_tools) or the Boot build tool
+* To develop with code reloading: `clj -A:dev` or `boot run`
+  * Your app will be available at http://localhost:9500
+  * Nightlight will be available at http://localhost:4000
+* To build a release version: `clj -A:prod` or `boot build`
