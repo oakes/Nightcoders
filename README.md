@@ -18,7 +18,7 @@ If you are experiencing permissions errors in your control panel, it may be beca
 
 ## Development
 
-* Install JDK 11 or above
+* Install JDK 8 or above
 * Install [the Clojure CLI tool](https://clojure.org/guides/getting_started#_clojure_installer_and_cli_tools)
 * To develop with figwheel: `clj -A:dev:cljs`
 * To build the uberjar: `clj -A:prod:cljs uberjar`

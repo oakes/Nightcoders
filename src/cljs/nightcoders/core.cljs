@@ -145,14 +145,17 @@
                         :on-click #(swap! *state assoc :dialog :new-project :new-project-template :edna)}
       "Music"]
      (when (seq (-> @*state :user :projects))
-       [:span
+       [:div
         [:h3 "Open an existing project:"]
         (for [{:keys [url project-name project-id] :as project} (-> @*state :user :projects)]
-          [ui/chip {:key project-id
-                    :style {:margin "10px"}
-                    :on-click #(set! (.-location js/window) url)
-                    :on-request-delete #(swap! *state assoc :dialog :delete-project :project project)}
-           [:div {:style {:min-width "100px"}} project-name]])])]]])
+          [:div
+           [ui/chip {:key project-id
+                     :style {:margin "5px"
+                             :display "inline-flex"}
+                     :on-click #(set! (.-location js/window) url)
+                     :on-request-delete #(swap! *state assoc :dialog :delete-project :project project)}
+            [:div {:style {:min-width "100px"}}
+             project-name]]])])]]])
 
 (defn intro []
   [:div {:class "card-group"}
