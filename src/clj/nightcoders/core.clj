@@ -358,10 +358,9 @@
 
 (defn dev-start [opts]
   (when-not @*web-server
-    (.mkdirs (io/file "target" "public"))
     (-> #'handler
         (wrap-reload)
-        (wrap-file "target/public")
+        (wrap-file "resources/public")
         (start opts))))
 
 (defn -main []

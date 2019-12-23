@@ -1,0 +1,7 @@
+^{:open-url false}
+{:main          nightcoders.loading
+ :optimizations :none
+ :output-to     "resources/public/loading.js"
+ :output-dir    "resources/public/loading.out"
+ :asset-path    "/loading.out"
+ :pseudo-names true}

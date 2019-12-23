@@ -8,3 +8,7 @@ pom.xml.asc
 !.gitignore
 data/
 *.db
+resources/public/nightcoders.js
+resources/public/nightcoders.out
+resources/public/loading.js
+resources/public/loading.out

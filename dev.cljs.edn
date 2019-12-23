@@ -1,0 +1,6 @@
+^{:open-url "http://localhost:3000"}
+{:main          nightcoders.core
+ :optimizations :none
+ :output-to     "resources/public/nightcoders.js"
+ :output-dir    "resources/public/nightcoders.out"
+ :asset-path    "/nightcoders.out"}
