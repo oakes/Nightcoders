@@ -62,6 +62,7 @@
 (defn sanitize-ns [s]
   (str "nightcoders."
     (-> s
+        str/trim
         str/lower-case
         (str/replace #"[ _]" "-")
         (str/replace #"/" ".")
@@ -69,6 +70,7 @@
 
 (defn sanitize-path [s]
   (-> s
+      str/trim
       str/lower-case
       (str/replace #"[ \-]" "_")
       (str/replace #"\." "/")
