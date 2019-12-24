@@ -72,8 +72,7 @@
                :optimizations :advanced})
   (build-cljs "loading"
               {:main          'nightcoders.loading
-               :optimizations :advanced
-               :pseudo-names true})
+               :optimizations :advanced})
   (let [project (-> (read-project-clj)
                     (merge (read-deps-edn []))
                     (assoc
